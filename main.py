@@ -13,8 +13,8 @@ app = FastAPI()
 
 
 # @app.post("/update-currency-rates/", response_model=List[schemas.CurrencyRateRead])
-@app.post("/update-currency-rates/")
-def get_currency_rates(
+@app.post("/sync-currency-rates/")
+def sync_currency_rates_endpoint(
         start_date: date,
         end_date: date,
         db: Session = Depends(get_db)
@@ -24,7 +24,20 @@ def get_currency_rates(
     """
     rates = parse_rates(start_date, end_date)
     print(rates)
-    crud.save_currency_rates(db, rates)
+    crud.sync_currency_rates(db, rates)
+    return rates
+
+
+@app.get("/get-currency-rates/")
+def get_currency_rates_endpoint(
+        start_date: date,
+        end_date: date,
+        db: Session = Depends(get_db)
+):
+    """
+    Получить курсы валют за указанный диапазон дат из базы данных.
+    """
+    rates = crud.get_currency_rates(db, start_date, end_date)
     return rates
 
 

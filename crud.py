@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 import models, schemas
 
 
-def save_currency_rates(db: Session, rates: List[schemas.CurrencyRateCreate]):
+def sync_currency_rates(db: Session, rates: List[schemas.CurrencyRateCreate]):
     """
     Сохранить курсы валют в базу данных.
     """
