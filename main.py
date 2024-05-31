@@ -26,7 +26,7 @@ def get_currency_rates(
     """
     rates = fetch_currency_rates(start_date, end_date)
     print(rates)
-    # crud.save_currency_rates(db, rates)
+    crud.save_currency_rates(db, rates)
     return rates
 
 
