@@ -14,7 +14,8 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-@app.post("/currency-rates/", response_model=List[schemas.CurrencyRateRead])
+# @app.post("/currency-rates/", response_model=List[schemas.CurrencyRateRead])
+@app.post("/currency-rates/")
 def get_currency_rates(
         start_date: date,
         end_date: date,
@@ -24,6 +25,7 @@ def get_currency_rates(
     Получить курсы валют за указанный диапазон дат.
     """
     rates = fetch_currency_rates(start_date, end_date)
+    print(rates)
     # crud.save_currency_rates(db, rates)
     return rates
 
