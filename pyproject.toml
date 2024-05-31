@@ -13,6 +13,9 @@ SQLAlchemy = "^2.0.30"
 matplotlib = "^3.9.0"
 pandas = "^2.2.2"
 aiosqlite = "^0.20.0"
+lxml = "^5.2.2"
+requests = "^2.32.3"
+bs4 = "^0.0.2"
 
 
 [build-system]
