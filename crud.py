@@ -8,7 +8,7 @@ import models, schemas
 
 def sync_currency_rates(db: Session, rates: List[schemas.CurrencyRateCreate]):
     """
-    Сохранить курсы валют в базу данных.
+    Функция для сохранения курсов валют в базу.
     """
     for rate in rates:
         db_rate = models.CurrencyRate(**rate.dict())
@@ -18,8 +18,9 @@ def sync_currency_rates(db: Session, rates: List[schemas.CurrencyRateCreate]):
 
 def get_currency_rates(db: Session, start_date: date, end_date: date):
     """
-    Получить курсы валют из базы данных за указанный диапазон дат.
+    Функция для получения курсов валют из базы данных за указанный диапазон дат.
     """
+    # @todo добавить значения по умолчанию для полчения всех возможных баз данных
     return db.query(models.CurrencyRate).filter(
         models.CurrencyRate.date >= start_date,
         models.CurrencyRate.date <= end_date
