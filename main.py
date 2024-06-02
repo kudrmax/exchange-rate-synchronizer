@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import date
 import models
 import crud
-from database import SessionLocal, engine, get_db
+from database import engine, get_db
 from services import parse_rates
 import uvicorn
 
@@ -20,7 +20,17 @@ def sync_currency_rates_endpoint(
         db: Session = Depends(get_db)
 ):
     """
-    Получить курсы валют за указанный диапазон дат.
+    API для синхронизации курсов валют за указанный период дат между сайтом и базой данных.
+
+    Parameters
+    ----------
+    start_date: дата начала периода
+    end_date: дата конца периода
+    db: сессия
+
+    Returns
+    -------
+    Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
     """
     rates = parse_rates(start_date, end_date)
     print(rates)
@@ -35,11 +45,21 @@ def get_currency_rates_endpoint(
         db: Session = Depends(get_db)
 ):
     """
-    Получить курсы валют за указанный диапазон дат из базы данных.
+    API для получения курсов валют за указанный период дат из базы данных.
+
+    Parameters
+    ----------
+    start_date: дата начала периода
+    end_date: дата конца периода
+    db: сессия
+
+    Returns
+    -------
+    Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
     """
     rates = crud.get_currency_rates(db, start_date, end_date)
     return rates
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # запуск приложения
     uvicorn.run(app, host="0.0.0.0", port=8000)

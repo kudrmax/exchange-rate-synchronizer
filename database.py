@@ -2,8 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Создание строки подключения к базе данных
-# В данном примере используется SQLite, но вы можете изменить её для другой СУБД
+# доступ к
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
 # Создание движка базы данных

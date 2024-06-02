@@ -3,6 +3,21 @@ from database import Base
 
 
 class CurrencyRate(Base):
+    """
+    SQLAlchemy ORM модель курсов валют.
+
+    Parameters
+    --------
+    id: int
+        Primary key записи курса валют.
+    currency : str
+        Код валюты (например, 'USD', 'EUR').
+    date: datetime.date
+        Дата курса валюты.
+    rate: float
+        Значение курса валюты.
+    """
+
     __tablename__ = "currency_rates"
 
     id = Column(Integer, primary_key=True, index=True)
