@@ -4,7 +4,7 @@ from datetime import date
 import models
 import crud
 from database import engine, get_db
-from parser import parse_rates
+from parser import CountryCurrencyParser, RateParser
 import uvicorn
 
 models.Base.metadata.create_all(bind=engine)
@@ -32,7 +32,8 @@ def sync_currency_rates_endpoint(
     -------
     Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
     """
-    rates = parse_rates(start_date, end_date)
+    parser = RateParser()
+    rates = parser.parse(start_date, end_date)
     print(rates)
     crud.sync_currency_rates(db, rates)
     return rates
@@ -56,6 +57,7 @@ def get_currency_rates_endpoint(
     Returns
     -------
     Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
+    @todo добавить значения по умолчанию для дат
     """
     rates = crud.get_currency_rates(db, start_date, end_date)
     return rates
