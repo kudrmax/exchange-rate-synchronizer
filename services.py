@@ -6,8 +6,21 @@ from schemas import CurrencyRateCreate
 
 
 def parse_rates(start_date: date, end_date: date) -> List[CurrencyRateCreate]:
-    url_fstring = "https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52170&bd={start_day}&bm={start_month}&by={start_year}&ed={end_day}&em={end_month}&ey={end_year}&x=48&y=13#archive"
+    currs = {
+        'USD': 52148,  # доллар
+        'EUR': 52170,  # евро
+        'GBP': 52146,  # фунт стерлигов
+        'JPY': 52246,  # японская йена
+        'TRY': 52158,  # турецкая лира
+        'INR': 52238,  # индийская рупия
+        'CNY': 52207,  # китайский юань
+    }
+
+    cur = 52170
+
+    url_fstring = "https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur={cur}&bd={start_day}&bm={start_month}&by={start_year}&ed={end_day}&em={end_month}&ey={end_year}&x=48&y=13#archive"
     url = url_fstring.format(
+        cur=cur,
         start_day=start_date.day, start_month=start_date.month, start_year=start_date.year,
         end_day=end_date.day, end_month=end_date.month, end_year=end_date.year
     )
