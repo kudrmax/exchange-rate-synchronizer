@@ -1,18 +1,20 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from datetime import date
-import models
-import crud
+# import models
+# import crud
 from database import engine, get_db
 from parser import CountryCurrencyParser, RateParser
 import uvicorn
 
-models.Base.metadata.create_all(bind=engine)
+from crud import sync_currency_rates, get_currency_rates, get_rate_by_id
+from models import Base
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 
-# @app.post("/update-currency-rates/", response_model=List[schemas.CurrencyRateRead])
 @app.post("/sync-currency-rates/")
 def sync_currency_rates_endpoint(
         start_date: date,
@@ -33,10 +35,9 @@ def sync_currency_rates_endpoint(
     Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
     """
     parser = RateParser()
-    rates = parser.parse(start_date, end_date)
-    print(rates)
-    crud.sync_currency_rates(db, rates)
-    return rates
+    new_rates = parser.parse(start_date, end_date)
+    sync_currency_rates(db, new_rates=new_rates)
+    return new_rates
 
 
 @app.get("/get-currency-rates/")
@@ -59,7 +60,7 @@ def get_currency_rates_endpoint(
     Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
     @todo добавить значения по умолчанию для дат
     """
-    rates = crud.get_currency_rates(db, start_date, end_date)
+    rates = get_currency_rates(db, start_date, end_date)
     return rates
 
 

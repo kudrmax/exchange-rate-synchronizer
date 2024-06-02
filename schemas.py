@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import date as date_t
 
 
 class CurrencyRateBase(BaseModel):
@@ -7,7 +7,7 @@ class CurrencyRateBase(BaseModel):
     Класс для курсов валют
     """
     currency: str  # название валюты (например 'USD')
-    date: date  # дата, в которой был данный курс валют
+    date: date_t  # дата, в которой был данный курс валют
     rate: float  # значение курса валют
 
 
@@ -24,7 +24,7 @@ class CurrencyRateUpdate(CurrencyRateBase):
     """
     id: int
     currency: str | None = None  # название валюты (например 'USD')
-    date: date | None = None  # дата, в которой был данный курс валют
+    date: date_t | None = None  # дата, в которой был данный курс валют
     rate: float | None = None  # значение курса валют
 
 

@@ -2,7 +2,7 @@ from typing import List
 from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
-from schemas import CurrencyRateCreate, CountryCurrencyCreate
+from schemas import CurrencyRateUpdate, CountryCurrencyUpdate
 from abc import ABC, abstractmethod
 
 
@@ -33,7 +33,7 @@ class RateParser(CurrencyParserBase):
             'CNY': 52207,  # китайский юань
         }
 
-    def parse(self, start_date: date, end_date: date) -> List[CurrencyRateCreate]:
+    def parse(self, start_date: date, end_date: date) -> List[CurrencyRateUpdate]:
         rates = []
 
         for curr_name, curr_code in self.currency_codes.items():
@@ -56,7 +56,7 @@ class RateParser(CurrencyParserBase):
                         try:
                             rate_value = float(rate_text.replace(',', '.'))
                             rate_date = datetime.strptime(date_text, "%d.%m.%Y")
-                            rate = CurrencyRateCreate(currency=curr_name, date=rate_date, rate=rate_value)
+                            rate = CurrencyRateUpdate(currency=curr_name, date=rate_date, rate=rate_value)
                             rates.append(rate)
                         except ValueError as ex:
                             print(f"Error parsing row {row}: {ex}")
@@ -67,7 +67,7 @@ class CountryCurrencyParser(CurrencyParserBase):
     def __init__(self):
         self.url = "https://www.iban.ru/currency-codes"
 
-    def parse(self) -> List[CountryCurrencyCreate]:
+    def parse(self) -> List[CountryCurrencyUpdate]:
         country_currencies = []
 
         soup = self._get_soup(self.url)
@@ -83,7 +83,7 @@ class CountryCurrencyParser(CurrencyParserBase):
                     currency_code = currency_code if currency_code != '' else None
                     currency_number = columns[3].text.strip()
                     currency_number = int(currency_number) if currency_number != '' else None
-                    country_currency = CountryCurrencyCreate(
+                    country_currency = CountryCurrencyUpdate(
                         country=country,
                         currency_name=currency_name,
                         currency_code=currency_code,
