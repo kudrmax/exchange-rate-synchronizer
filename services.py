@@ -50,9 +50,8 @@ def parse_rates(start_date: date, end_date: date) -> List[CurrencyRateCreate]:
     return rates
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # для тестирования парсера
     start_date = date(2023, 5, 1)
     end_date = date(2023, 6, 1)
-
     res = parse_rates(start_date=start_date, end_date=end_date)
     print(res)

@@ -62,4 +62,4 @@ def get_currency_rates_endpoint(
 
 
 if __name__ == "__main__":  # запуск приложения
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run('main:app', host="0.0.0.0", port=8000, reload=True)
