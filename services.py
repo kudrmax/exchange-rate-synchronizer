@@ -2,7 +2,36 @@ from typing import List
 from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
-from schemas import CurrencyRateCreate
+from schemas import CurrencyRateCreate, CountryCurrencyCreate
+
+
+def parse_country_currency() -> List[CountryCurrencyCreate]:
+    url = "https://www.iban.ru/currency-codes"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    country_currencies = []
+
+    table = soup.find('table', class_='table table-bordered downloads tablesorter')
+    if table:
+        rows = table.find('tbody').find_all('tr')
+        for row in rows:
+            columns = row.find_all('td')
+            if len(columns) >= 4:
+                country = columns[0].text.strip()
+                currency_name = columns[1].text.strip()
+                currency_code = columns[2].text.strip()
+                currency_code = currency_code if currency_code != '' else None
+                currency_number = columns[3].text.strip()
+                currency_number = int(currency_number) if currency_number != '' else None
+                country_currency = CountryCurrencyCreate(
+                    country=country,
+                    currency_name=currency_name,
+                    currency_code=currency_code,
+                    currency_number=currency_number
+                )
+                country_currencies.append(country_currency)
+    return country_currencies
 
 
 def parse_rates(start_date: date, end_date: date) -> List[CurrencyRateCreate]:
@@ -15,8 +44,6 @@ def parse_rates(start_date: date, end_date: date) -> List[CurrencyRateCreate]:
         'INR': 52238,  # индийская рупия
         'CNY': 52207,  # китайский юань
     }
-
-    rates_dict = {}
 
     rates = []
 
@@ -36,7 +63,7 @@ def parse_rates(start_date: date, end_date: date) -> List[CurrencyRateCreate]:
             rows = table.find('tbody').find_all('tr')
             for row in rows:
                 columns = row.find_all('td')
-                if len(columns) >= 3:  # @todo
+                if len(columns) >= 3:
                     date_text = columns[0].text.strip()
                     rate_text = columns[2].text.strip()
                     try:
@@ -44,7 +71,7 @@ def parse_rates(start_date: date, end_date: date) -> List[CurrencyRateCreate]:
                         rate_date = datetime.strptime(date_text, "%d.%m.%Y")
                         rate = CurrencyRateCreate(currency=curr_name, date=rate_date, rate=rate_value)
                         rates.append(rate)
-                        print(rate_date, rate_value)
+                        # print(rate_date, rate_value)
                     except ValueError as ex:
                         print(f"Error parsing row {row}: {ex}")
     return rates
@@ -53,5 +80,7 @@ def parse_rates(start_date: date, end_date: date) -> List[CurrencyRateCreate]:
 if __name__ == '__main__':  # для тестирования парсера
     start_date = date(2023, 5, 1)
     end_date = date(2023, 6, 1)
-    res = parse_rates(start_date=start_date, end_date=end_date)
-    print(res)
+    rates = parse_rates(start_date=start_date, end_date=end_date)
+    country_currency = parse_country_currency()
+    # print(rates)
+    print(country_currency)
