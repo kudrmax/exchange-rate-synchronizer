@@ -4,7 +4,7 @@ from datetime import date
 import models
 import crud
 from database import engine, get_db
-from services import parse_rates
+from parser import parse_rates
 import uvicorn
 
 models.Base.metadata.create_all(bind=engine)
