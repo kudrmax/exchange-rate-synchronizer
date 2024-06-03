@@ -41,7 +41,6 @@ class CountryBase(BaseModel):
     country: str  # например 'Россия'
     currency_name: str  # например 'Российский рубль'
     currency_code: str | None = None  # например 'RUB'
-    currency_number: int | None = None  # например 643
 
 
 class CountryCreate(CountryBase):

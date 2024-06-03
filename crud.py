@@ -78,14 +78,14 @@ def create_currency_rate(
 ##################################
 
 
-def get_country_by_id(
-        db: Session,
-        country_id: int
-) -> Optional[CountryModel]:
-    query = select(CountryModel).where(CountryModel.id == country_id)
-    result = db.execute(query)
-    rate: CountryModel = result.scalar_one_or_none()
-    return rate
+# def get_country_by_id(
+#         db: Session,
+#         country_id: int
+# ) -> Optional[CountryModel]:
+#     query = select(CountryModel).where(CountryModel.id == country_id)
+#     result = db.execute(query)
+#     rate: CountryModel = result.scalar_one_or_none()
+#     return rate
 
 
 def get_countries(db: Session):
@@ -99,72 +99,48 @@ def sync_counties(
     """
     Функция для сохранения курсов валют в базу.
     """
+    was_updated_counter = 0
+    was_created_counter = 0
+
     for country_to_sync in countries_to_sync:
-
-        query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
-        country = db.execute(query).scalar_one_or_none()
-
-        query = select(CurrencyDataModel).where(CurrencyDataModel.currency_name == country_to_sync.currency_name).where(
-            CurrencyDataModel.currency_code == country_to_sync.currency_code)
-        currency = db.execute(query).scalar_one_or_none()
-
-        if not country:
-            # добавить в БД
-            pass
-
-        # # ищу страну в БД стран по названию
-        # query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
-        # country = db.execute(query).scalar_one_or_none()
-        # if country:
-        #     query = select(CurrencyDataModel).where(CurrencyDataModel.id == country.currency_id)
-        #     currency: CurrencyDataModel = db.execute(query).scalar_one_or_none()
-        #     if currency:
-        #         if currency.currency_name == country_to_sync.currency_name and currency.currency_code == country_to_sync.currency_code:
-        #             pass
-        #         else:
-        #
-        #     else:
-        #         # добавить новую запись с валютой
-        #         pass
-        # else:
-        #     # добавить новую страну
-        #     pass
-
-        # ищу curr по БД curr_data по curr_id из строки выше
-        # сравниваю то, что мне пришло в country_to_sync и в id
-        # обновляю, добавляю или ниче не делаю
-
-        query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
-        result = db.execute(query)
-        country: CountryModel = result.scalar_one_or_none()
-        if country:
-            update_country(db, country_id=country.id, update_country=country_to_sync)
+        country: CountryModel = db.query(models.CountryModel).get(country_to_sync.country)
+        if country:  # если такая страна нашлась, то обновляем ее актуальными данными
+            country_to_sync_dict = country_to_sync.model_dump(exclude_unset=True)
+            for key, val in country_to_sync_dict.items():
+                setattr(country, key, val)
+            db.commit()
+            db.refresh(country)
+            was_updated_counter += 1
         else:
-            new_country = CountryCreate(**country_to_sync.model_dump())
-            create_country(db, new_country=new_country)
+            country = CountryModel(**country_to_sync.model_dump())
+            db.add(country)
+            db.commit()
+            db.refresh(country)
+            was_created_counter += 1
 
+    return was_updated_counter, was_created_counter
 
-def update_country(
-        db: Session,
-        country_id: int,
-        update_country: schemas.CountryUpdate
-):
-    country = get_country_by_id(db=db, country_id=country_id)
-    if country:
-        new_country_dict = update_country.model_dump(exclude_unset=True)
-        for key, val in new_country_dict.items():
-            setattr(country, key, val)
-        db.commit()
-        db.refresh(country)
-        return country
-
-
-def create_country(
-        db: Session,
-        new_country: CountryCreate
-):
-    country = CountryModel(**new_country.model_dump())
-    db.add(country)
-    db.commit()
-    db.refresh(country)
-    return country
+# def update_country(
+#         db: Session,
+#         country: str,
+#         update_country: schemas.CountryUpdate
+# ):
+#     country = get_country_by_id(db=db, country_id=country_id)
+#     if country:
+#         new_country_dict = update_country.model_dump(exclude_unset=True)
+#         for key, val in new_country_dict.items():
+#             setattr(country, key, val)
+#         db.commit()
+#         db.refresh(country)
+#         return country
+#
+#
+# def create_country(
+#         db: Session,
+#         new_country: CountryCreate
+# ):
+#     country = CountryModel(**new_country.model_dump())
+#     db.add(country)
+#     db.commit()
+#     db.refresh(country)
+#     return country
