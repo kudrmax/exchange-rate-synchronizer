@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 import models, schemas
-from models import CurrencyRateModel, CountryModel
+from models import *  # @todo
 from schemas import CurrencyRateCreate, CountryCreate
 
 
@@ -100,6 +100,40 @@ def sync_counties(
     Функция для сохранения курсов валют в базу.
     """
     for country_to_sync in countries_to_sync:
+
+        query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
+        country = db.execute(query).scalar_one_or_none()
+
+        query = select(CurrencyDataModel).where(CurrencyDataModel.currency_name == country_to_sync.currency_name).where(
+            CurrencyDataModel.currency_code == country_to_sync.currency_code)
+        currency = db.execute(query).scalar_one_or_none()
+
+        if not country:
+            # добавить в БД
+            pass
+
+        # # ищу страну в БД стран по названию
+        # query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
+        # country = db.execute(query).scalar_one_or_none()
+        # if country:
+        #     query = select(CurrencyDataModel).where(CurrencyDataModel.id == country.currency_id)
+        #     currency: CurrencyDataModel = db.execute(query).scalar_one_or_none()
+        #     if currency:
+        #         if currency.currency_name == country_to_sync.currency_name and currency.currency_code == country_to_sync.currency_code:
+        #             pass
+        #         else:
+        #
+        #     else:
+        #         # добавить новую запись с валютой
+        #         pass
+        # else:
+        #     # добавить новую страну
+        #     pass
+
+        # ищу curr по БД curr_data по curr_id из строки выше
+        # сравниваю то, что мне пришло в country_to_sync и в id
+        # обновляю, добавляю или ниче не делаю
+
         query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
         result = db.execute(query)
         country: CountryModel = result.scalar_one_or_none()
