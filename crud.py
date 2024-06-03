@@ -92,56 +92,77 @@ def get_countries(db: Session):
     return db.query(models.CountryModel).all()
 
 
-def sync_counties(
-        db: Session,
-        countries_to_sync: List[schemas.CountryUpdate]
-):
+from sqlalchemy.orm import Session
+from sqlalchemy.dialects.sqlite import insert
+from models import CountryModel, CurrencyDataModel
+from schemas import CountryUpdate
+from typing import List
+
+
+def sync_counties(db: Session, countries_to_sync: List[CountryUpdate]):
     """
-    Функция для сохранения курсов валют в базу.
+    Синхронизировать данные о странах и валютах в базе данных.
+
+    Parameters
+    ----------
+    db : Session
+        Сессия базы данных.
+    countries_to_sync : List[CountryUpdate]
+        Список данных для обновления о странах и валютах.
     """
-    for country_to_sync in countries_to_sync:
+    currency_data_updates = []
+    country_data_updates = []
 
-        query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
-        country = db.execute(query).scalar_one_or_none()
+    for update in countries_to_sync:
+        currency_data_updates.append({
+            "currency_name": update.currency_name,
+            "currency_code": update.currency_code
+        })
 
-        query = select(CurrencyDataModel).where(CurrencyDataModel.currency_name == country_to_sync.currency_name).where(
-            CurrencyDataModel.currency_code == country_to_sync.currency_code)
-        currency = db.execute(query).scalar_one_or_none()
+    # обновляем БД currencies_data используя данные, которые мы получили в country_updates
+    # если такая запись уже была, актуализируем ее новыми данными
+    # если такой записи еще нет, то добавляем новую
+    insert_stmt = insert(CurrencyDataModel).values(currency_data_updates)
+    update_stmt = insert_stmt.on_conflict_do_update(
+        index_elements=['currency_name'],  # Обрабатываем конфликт по currency_name
+        set_={
+            "currency_code": insert_stmt.excluded.currency_code
+        }
+    )
+    db.execute(update_stmt)
+    db.commit()
 
-        if not country:
-            # добавить в БД
-            pass
+    insert_stmt = insert(CurrencyDataModel).values(currency_data_updates)
+    update_stmt = insert_stmt.on_conflict_do_update(
+        index_elements=['currency_code'],  # Обрабатываем конфликт по currency_code
+        set_={
+            "currency_name": insert_stmt.excluded.currency_name
+        }
+    )
+    db.execute(update_stmt)
+    db.commit()
 
-        # # ищу страну в БД стран по названию
-        # query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
-        # country = db.execute(query).scalar_one_or_none()
-        # if country:
-        #     query = select(CurrencyDataModel).where(CurrencyDataModel.id == country.currency_id)
-        #     currency: CurrencyDataModel = db.execute(query).scalar_one_or_none()
-        #     if currency:
-        #         if currency.currency_name == country_to_sync.currency_name and currency.currency_code == country_to_sync.currency_code:
-        #             pass
-        #         else:
-        #
-        #     else:
-        #         # добавить новую запись с валютой
-        #         pass
-        # else:
-        #     # добавить новую страну
-        #     pass
+    # получим id в таблице CurrencyDataModel для всех country в country_updates
+    currency_name_to_id = {
+        obj.currency_name: obj.id for obj in db.query(CurrencyDataModel).all()
+    }
 
-        # ищу curr по БД curr_data по curr_id из строки выше
-        # сравниваю то, что мне пришло в country_to_sync и в id
-        # обновляю, добавляю или ниче не делаю
+    for update in countries_to_sync:
+        country_data_updates.append({
+            "country": update.country,
+            "currency_id": currency_name_to_id[update.currency_name]
+        })
 
-        query = select(CountryModel).where(CountryModel.country == country_to_sync.country)
-        result = db.execute(query)
-        country: CountryModel = result.scalar_one_or_none()
-        if country:
-            update_country(db, country_id=country.id, update_country=country_to_sync)
-        else:
-            new_country = CountryCreate(**country_to_sync.model_dump())
-            create_country(db, new_country=new_country)
+    # массовая вставка в БД CountryModel аналогично массовой вставке выше
+    insert_stmt = insert(CountryModel).values(country_data_updates)
+    update_stmt = insert_stmt.on_conflict_do_update(
+        index_elements=['country'],
+        set_={
+            "currency_id": insert_stmt.excluded.currency_id
+        }
+    )
+    db.execute(update_stmt)
+    db.commit()
 
 
 def update_country(

@@ -7,8 +7,12 @@ class CurrencyDataModel(Base):
     __tablename__ = "currencies_data"
 
     id = Column(Integer, primary_key=True, index=True)
-    currency_name = Column(String)
-    currency_code = Column(String)
+    currency_name = Column(String, unique=True, nullable=False)
+    currency_code = Column(String, unique=True, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint('currency_code', 'currency_name'),
+    )
 
     # def __repr__(self):
     #     return f"<CurrencyData(currency_name={self.currency_name}, currency_code={self.currency_code})>"
@@ -48,5 +52,5 @@ class CountryModel(Base):
     __tablename__ = "countries"
 
     id = Column(Integer, primary_key=True, index=True)
-    country = Column(String, index=True)
+    country = Column(String, index=True, unique=True)
     currency_id = Column(Integer, ForeignKey('currencies_data.id'), index=True)
