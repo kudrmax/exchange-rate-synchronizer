@@ -71,9 +71,14 @@ def get_country_currency_rates_endpoint(
 ):
     parser = CountryCurrencyParser()
     countries = parser.parse()
-    sync_counties(db, countries_to_sync=countries)
+    was_updated_counter, was_created_counter = sync_counties(db, countries_to_sync=countries)
     country_currencies = get_countries(db)
-    return country_currencies
+    result = {
+        'was_updated': was_updated_counter,
+        'was_created': was_created_counter,
+        'data': country_currencies
+    }
+    return result
 
 
 @app.get("/get-countries/")
