@@ -10,8 +10,10 @@ class CurrencyParserBase(ABC):
     """
     Абсрактный класс для парсинга, который обязывает наследников реализовывать метод parse
     """
+
     def _get_soup(self, url: str) -> BeautifulSoup:
         response = requests.get(url)
+        response.encoding = 'cp1251'
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup
 
@@ -23,18 +25,46 @@ class CurrencyParserBase(ABC):
 class RateParser(CurrencyParserBase):
     def __init__(self):
         self.url_template = "https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur={cur}&bd={start_day}&bm={start_month}&by={start_year}&ed={end_day}&em={end_month}&ey={end_year}&x=48&y=13#archive"
-        self.currency_codes = {
-            'USD': 52148,  # доллар
-            'EUR': 52170,  # евро
-            'GBP': 52146,  # фунт стерлигов
-            'JPY': 52246,  # японская йена
-            'TRY': 52158,  # турецкая лира
-            'INR': 52238,  # индийская рупия
-            'CNY': 52207,  # китайский юань
-        }
+        self._get_url_codes()
+
+    def _get_url_codes(self):
+
+        self.currency_codes = {}
+
+        url = 'https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52148'
+        soup = self._get_soup(url)
+        # form = soup.find('form', {
+        #     'method': 'get',
+        #     'action': '/currency/rates/#archive'
+        # })
+        # table = soup.find('table', {'class': 'fs11'})
+        # if table:
+        #     options = table.find('tbody').find('td').find_all('option')
+        #     print(options)
+
+        select = soup.find('select', {'class': 'fs11'})
+        if select:
+            options = select.find_all('option')
+            for option in options:
+                value = option.get('value')
+                text = option.text
+                self.currency_codes[text] = value
+            print(options)
+
+        # self.currency_codes = {
+        #     'USD': 52148,  # доллар
+        #     'EUR': 52170,  # евро
+        #     'GBP': 52146,  # фунт стерлигов
+        #     'JPY': 52246,  # японская йена
+        #     'TRY': 52158,  # турецкая лира
+        #     'INR': 52238,  # индийская рупия
+        #     'CNY': 52207,  # китайский юань
+        # }
 
     def parse(self, start_date: date, end_date: date) -> List[CurrencyRateUpdate]:
         rates = []
+
+        self._get_url_codes()
 
         for curr_name, curr_code in self.currency_codes.items():
 
