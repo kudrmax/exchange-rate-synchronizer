@@ -76,7 +76,7 @@ class RateParser(CurrencyParserBase):
                         try:
                             rate_value = float(rate_text.replace(',', '.'))
                             rate_date = datetime.strptime(date_text, "%d.%m.%Y")
-                            rate = CurrencyRateUpdate(currency=curr_name, date=rate_date, rate=rate_value)
+                            rate = CurrencyRateUpdate(currency_code=curr_name, date=rate_date, rate=rate_value)
                             rates.append(rate)
                         except ValueError as ex:
                             print(f"Error parsing row {row}: {ex}")

@@ -9,11 +9,12 @@ from models import *  # @todo
 from schemas import CurrencyRateCreate, CountryCreate
 
 
-def get_rate_by_id(
+def get_rate_by_code(
         db: Session,
-        rate_id: int
+        currency_code: str,
+        curr_date: date
 ) -> Optional[CurrencyRateModel]:
-    query = select(CurrencyRateModel).where(CurrencyRateModel.id == rate_id)
+    query = select(CurrencyRateModel).where(CurrencyRateModel.currency_code == currency_code).where(CurrencyRateModel.date == curr_date)
     result = db.execute(query)
     rate: CurrencyRateModel = result.scalar_one_or_none()
     return rate
@@ -37,24 +38,31 @@ def sync_currency_rates(
     """
     Функция для сохранения курсов валют в базу.
     """
+    was_updated_counter = 0
+    was_created_counter = 0
+
     for rate_to_sync in rates_to_sync:
         query = select(CurrencyRateModel).where(CurrencyRateModel.date == rate_to_sync.date).where(
-            CurrencyRateModel.currency == rate_to_sync.currency)
+            CurrencyRateModel.currency_code == rate_to_sync.currency_code)
         result = db.execute(query)
         rate: CurrencyRateModel = result.scalar_one_or_none()
         if rate:
-            update_currency_rate(db, rate_id=rate.id, new_rate=rate_to_sync)
+            update_currency_rate(db, currency_code=rate.currency_code, curr_date=rate.date, new_rate=rate_to_sync)
+            was_updated_counter += 1
         else:
             new_rate = CurrencyRateCreate(**rate_to_sync.model_dump())
             create_currency_rate(db, new_rate=new_rate)
+            was_created_counter += 1
+    return was_updated_counter, was_created_counter
 
 
 def update_currency_rate(
         db: Session,
-        rate_id: int,
+        currency_code: str,
+        curr_date: date,
         new_rate: schemas.CurrencyRateUpdate
 ):
-    rate = get_rate_by_id(db=db, rate_id=rate_id)
+    rate = get_rate_by_code(db=db, currency_code=currency_code, curr_date=curr_date)
     if rate:
         new_rate_dict = new_rate.model_dump(exclude_unset=True)
         for key, val in new_rate_dict.items():

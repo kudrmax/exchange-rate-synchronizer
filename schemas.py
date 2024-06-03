@@ -6,7 +6,7 @@ class CurrencyRateBase(BaseModel):
     """
     Класс для курсов валют
     """
-    currency: str  # название валюты (например 'USD')
+    currency_code: str  # название валюты (например 'USD')
     date: date_t  # дата, в которой был данный курс валют
     rate: float  # значение курса валют
 
@@ -22,7 +22,7 @@ class CurrencyRateUpdate(CurrencyRateBase):
     """
     Класс для изменения объекта курса валюты
     """
-    currency: str  # название валюты (например 'USD')
+    currency_code: str  # название валюты (например 'USD')
     date: date_t  # дата, в которой был данный курс валют
     rate: float | None = None  # значение курса валют
 

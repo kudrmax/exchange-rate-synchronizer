@@ -15,8 +15,8 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-@app.post("/sync-currency-rates/")
-def sync_currency_rates_endpoint(
+@app.post("/sync-and-get-currency-rates/")
+def sync_and_get_currency_rates_endpoint(
         start_date: date,
         end_date: date,
         db: Session = Depends(get_db)
@@ -34,39 +34,22 @@ def sync_currency_rates_endpoint(
     -------
     Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
     """
+    # @todo добавить проверку на то, что нельзя выбрать период более двух лет
+    # @todo добавить значения по умолчанию для дат
     parser = RateParser()
-    rates = parser.parse(start_date, end_date)
-    sync_currency_rates(db, rates_to_sync=rates)
+    rates_to_sync = parser.parse(start_date, end_date)
+    was_updated_counter, was_created_counter = sync_currency_rates(db, rates_to_sync=rates_to_sync)
     rates_from_db = get_currency_rates(db, start_date, end_date)
-    return rates_from_db
+    result = {
+        'was_updated': was_updated_counter,
+        'was_created': was_created_counter,
+        'data': rates_from_db
+    }
+    return result
 
 
-@app.get("/get-currency-rates/")
-def get_currency_rates_endpoint(
-        start_date: date,
-        end_date: date,
-        db: Session = Depends(get_db)
-):
-    """
-    API для получения курсов валют за указанный период дат из базы данных.
-
-    Parameters
-    ----------
-    start_date: дата начала периода
-    end_date: дата конца периода
-    db: сессия
-
-    Returns
-    -------
-    Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
-    @todo добавить значения по умолчанию для дат
-    """
-    rates = get_currency_rates(db, start_date, end_date)
-    return rates
-
-
-@app.post("/sync-countries/")
-def get_country_currency_rates_endpoint(
+@app.post("/sync-and-get-countries/")
+def sync_and_get_country_currency_rates_endpoint(
         db: Session = Depends(get_db)
 ):
     parser = CountryCurrencyParser()
@@ -79,14 +62,6 @@ def get_country_currency_rates_endpoint(
         'data': country_currencies
     }
     return result
-
-
-@app.get("/get-countries/")
-def get_countries_endpoint(
-        db: Session = Depends(get_db)
-):
-    countries = get_countries(db)
-    return countries
 
 
 if __name__ == "__main__":  # запуск приложения
