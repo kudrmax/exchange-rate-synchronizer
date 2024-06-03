@@ -2,7 +2,7 @@ from typing import List
 from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
-from schemas import CurrencyRateUpdate, CountryCurrencyUpdate
+from schemas import CurrencyRateUpdate, CountryUpdate
 from abc import ABC, abstractmethod
 
 
@@ -67,7 +67,7 @@ class CountryCurrencyParser(CurrencyParserBase):
     def __init__(self):
         self.url = "https://www.iban.ru/currency-codes"
 
-    def parse(self) -> List[CountryCurrencyUpdate]:
+    def parse(self) -> List[CountryUpdate]:
         country_currencies = []
 
         soup = self._get_soup(self.url)
@@ -83,7 +83,7 @@ class CountryCurrencyParser(CurrencyParserBase):
                     currency_code = currency_code if currency_code != '' else None
                     currency_number = columns[3].text.strip()
                     currency_number = int(currency_number) if currency_number != '' else None
-                    country_currency = CountryCurrencyUpdate(
+                    country_currency = CountryUpdate(
                         country=country,
                         currency_name=currency_name,
                         currency_code=currency_code,

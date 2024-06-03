@@ -7,7 +7,7 @@ from database import engine, get_db
 from parser import CountryCurrencyParser, RateParser
 import uvicorn
 
-from crud import sync_currency_rates, get_currency_rates, get_rate_by_id
+from crud import sync_currency_rates, get_currency_rates, sync_counties, get_countries
 from models import Base
 
 Base.metadata.create_all(bind=engine)
@@ -36,8 +36,9 @@ def sync_currency_rates_endpoint(
     """
     parser = RateParser()
     rates = parser.parse(start_date, end_date)
-    sync_currency_rates(db, new_rates=rates)
-    return rates
+    sync_currency_rates(db, rates_to_sync=rates)
+    rates_from_db = get_currency_rates(db, start_date, end_date)
+    return rates_from_db
 
 
 @app.get("/get-currency-rates/")
@@ -62,6 +63,25 @@ def get_currency_rates_endpoint(
     """
     rates = get_currency_rates(db, start_date, end_date)
     return rates
+
+
+@app.post("/sync-countries/")
+def get_country_currency_rates_endpoint(
+        db: Session = Depends(get_db)
+):
+    parser = CountryCurrencyParser()
+    countries = parser.parse()
+    sync_counties(db, countries_to_sync=countries)
+    country_currencies = get_countries(db)
+    return country_currencies
+
+
+@app.get("/get-countries/")
+def get_countries_endpoint(
+        db: Session = Depends(get_db)
+):
+    countries = get_countries(db)
+    return countries
 
 
 if __name__ == "__main__":  # запуск приложения

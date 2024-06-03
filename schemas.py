@@ -34,7 +34,7 @@ class CurrencyRateRead(CurrencyRateBase):
     id: int
 
 
-class CountryCurrencyBase(BaseModel):
+class CountryBase(BaseModel):
     """
     Класс для информации о валютах стран
     """
@@ -44,25 +44,24 @@ class CountryCurrencyBase(BaseModel):
     currency_number: int | None = None  # например 643
 
 
-class CountryCurrencyCreate(CountryCurrencyBase):
+class CountryCreate(CountryBase):
     """
     Класс для создания информации о валютах стран
     """
     pass
 
 
-class CountryCurrencyUpdate(CountryCurrencyBase):
+class CountryUpdate(CountryBase):
     """
     Класс для изменения информации о валютах стран
     """
-    id: int
-    country: str | None = None  # например 'Россия'
-    currency_name: str | None = None  # например 'Российский рубль'
+    country: str  # например 'Россия'
+    currency_name: str  # например 'Российский рубль'
     currency_code: str | None = None  # например 'RUB'
     currency_number: int | None = None  # например 643
 
 
-class CountryCurrencyRead(CountryCurrencyBase):
+class CountryRead(CountryBase):
     """
     Класс для чтения (просмотра) информации о валютах стран
     """
