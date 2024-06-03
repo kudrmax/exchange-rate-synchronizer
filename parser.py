@@ -11,9 +11,10 @@ class CurrencyParserBase(ABC):
     Абсрактный класс для парсинга, который обязывает наследников реализовывать метод parse
     """
 
-    def _get_soup(self, url: str) -> BeautifulSoup:
+    def _get_soup(self, url: str, encoding: str | None = None) -> BeautifulSoup:
         response = requests.get(url)
-        response.encoding = 'cp1251'
+        if encoding is not None:
+            response.encoding = encoding
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup
 
@@ -28,38 +29,27 @@ class RateParser(CurrencyParserBase):
         self._get_url_codes()
 
     def _get_url_codes(self):
-
-        self.currency_codes = {}
-
-        url = 'https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52148'
-        soup = self._get_soup(url)
-        # form = soup.find('form', {
-        #     'method': 'get',
-        #     'action': '/currency/rates/#archive'
-        # })
-        # table = soup.find('table', {'class': 'fs11'})
-        # if table:
-        #     options = table.find('tbody').find('td').find_all('option')
+        # self.currency_codes = {}
+        # url = 'https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52148'
+        # soup = self._get_soup(url)
+        # select = soup.find('select', {'class': 'fs11'})
+        # if select:
+        #     options = select.find_all('option')
+        #     for option in options:
+        #         value = option.get('value')
+        #         text = option.text
+        #         self.currency_codes[text] = value
         #     print(options)
 
-        select = soup.find('select', {'class': 'fs11'})
-        if select:
-            options = select.find_all('option')
-            for option in options:
-                value = option.get('value')
-                text = option.text
-                self.currency_codes[text] = value
-            print(options)
-
-        # self.currency_codes = {
-        #     'USD': 52148,  # доллар
-        #     'EUR': 52170,  # евро
-        #     'GBP': 52146,  # фунт стерлигов
-        #     'JPY': 52246,  # японская йена
-        #     'TRY': 52158,  # турецкая лира
-        #     'INR': 52238,  # индийская рупия
-        #     'CNY': 52207,  # китайский юань
-        # }
+        self.currency_codes = {
+            'USD': 52148,  # доллар
+            'EUR': 52170,  # евро
+            'GBP': 52146,  # фунт стерлигов
+            'JPY': 52246,  # японская йена
+            'TRY': 52158,  # турецкая лира
+            'INR': 52238,  # индийская рупия
+            'CNY': 52207,  # китайский юань
+        }
 
     def parse(self, start_date: date, end_date: date) -> List[CurrencyRateUpdate]:
         rates = []
@@ -73,7 +63,7 @@ class RateParser(CurrencyParserBase):
                 start_day=start_date.day, start_month=start_date.month, start_year=start_date.year,
                 end_day=end_date.day, end_month=end_date.month, end_year=end_date.year
             )
-            soup = self._get_soup(url)
+            soup = self._get_soup(url, encoding='cp1251')
 
             table = soup.find('table', {'class': 'karramba'})
             if table:
@@ -111,13 +101,10 @@ class CountryCurrencyParser(CurrencyParserBase):
                     currency_name = columns[1].text.strip()
                     currency_code = columns[2].text.strip()
                     currency_code = currency_code if currency_code != '' else None
-                    currency_number = columns[3].text.strip()
-                    currency_number = int(currency_number) if currency_number != '' else None
                     country_currency = CountryUpdate(
                         country=country,
                         currency_name=currency_name,
                         currency_code=currency_code,
-                        currency_number=currency_number
                     )
                     country_currencies.append(country_currency)
         return country_currencies
