@@ -22,9 +22,8 @@ class CurrencyRateUpdate(CurrencyRateBase):
     """
     Класс для изменения объекта курса валюты
     """
-    id: int
-    currency: str | None = None  # название валюты (например 'USD')
-    date: date_t | None = None  # дата, в которой был данный курс валют
+    currency: str  # название валюты (например 'USD')
+    date: date_t  # дата, в которой был данный курс валют
     rate: float | None = None  # значение курса валют
 
 

@@ -35,9 +35,9 @@ def sync_currency_rates_endpoint(
     Лист из объектов типа CurrencyRate (@todo изменить, чтобы был не Create)
     """
     parser = RateParser()
-    new_rates = parser.parse(start_date, end_date)
-    sync_currency_rates(db, new_rates=new_rates)
-    return new_rates
+    rates = parser.parse(start_date, end_date)
+    sync_currency_rates(db, new_rates=rates)
+    return rates
 
 
 @app.get("/get-currency-rates/")
