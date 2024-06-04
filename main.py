@@ -60,9 +60,7 @@ def sync_and_get_currency_related_rates_endpoint(
         end_date: date,
         db: Session = Depends(get_db)
 ):
-    sync_and_get_currency_rates_endpoint(start_date, end_date, db)
-
-    # обновление baserate
+    # обновление baserates
     base_date = date(2020, 1, 1)
     sync_and_get_currency_rates_endpoint(base_date, base_date, db)
 
@@ -78,7 +76,8 @@ def sync_and_get_currency_related_rates_endpoint(
 
     for currency_code, _ in currency_codes.items():
 
-        query = select(CurrencyRateModel).where(CurrencyRateModel.date == base_date).where(CurrencyRateModel.currency_code == currency_code)
+        query = select(CurrencyRateModel).where(CurrencyRateModel.date == base_date).where(
+            CurrencyRateModel.currency_code == currency_code)
         result = db.execute(query)
         currency: CurrencyRateModel = result.scalar_one_or_none()
 
@@ -111,18 +110,45 @@ def sync_and_get_currency_related_rates_endpoint(
     # temp = list(result.scalars())
     # print(*temp)
 
-    # обновление БД
+    # обновление курсов валют
+    related_rates_to_sync = sync_and_get_currency_rates_endpoint(start_date, end_date, db)['data']
 
-    # was_updated_counter_related_rates, was_created_counter_related_rates = sync_and_get_currency_related_rates(db, rates_to_sync=rates_to_sync, base_rates=base_rates)
+    # # обновление БД относительных курсов валют
+    for related_rate in related_rates_to_sync:
+        currency_code = related_rate.currency_code
+        param: Parameters = db.query(Parameters).get(currency_code)
+        if param:
+            related_rate_value = related_rate.rate / param.base_rate
+            query = select(RelatedCurrencyRateModel).where(
+                RelatedCurrencyRateModel.date == related_rate.date).where(
+                RelatedCurrencyRateModel.currency_code == currency_code)
+            result = db.execute(query)
+            existing_related_rate: RelatedCurrencyRateModel = result.scalar_one_or_none()
 
-    # rates_from_db = get_currency_rates(db, start_date, end_date)
-    # result = {
-    #     'was_updated': was_updated_counter_rates + was_updated_counter_related_rates,
-    #     'was_created': was_created_counter_rates + was_created_counter_related_rates,
-    #     'data': rates_from_db
-    # }
-    # return result
-    return {}
+            if existing_related_rate:
+                update_object(
+                    db=db,
+                    model=RelatedCurrencyRateModel,
+                    obj_id=(currency_code, related_rate.date),
+                    schema=CurrencyRelatedRateUpdate(
+                        related_rate=related_rate_value
+                    )
+                )
+            else:
+                create_object(
+                    db=db,
+                    model=RelatedCurrencyRateModel,
+                    schema=CurrencyRelatedRateCreate(
+                        currency_code=currency_code,
+                        date=related_rate.date,
+                        related_rate=related_rate_value
+                    )
+                )
+
+    return db.query(RelatedCurrencyRateModel).filter(
+        RelatedCurrencyRateModel.date >= start_date,
+        RelatedCurrencyRateModel.date <= end_date
+    ).all()
 
 
 @app.post("/sync-and-get-countries/")

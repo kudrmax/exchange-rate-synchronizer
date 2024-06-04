@@ -27,6 +27,22 @@ class CurrencyRateUpdate(CurrencyRateBase):
     rate: float | None = None  # значение курса валют
 
 
+class CurrencyRelatedRateUpdate(BaseModel):
+    """
+    Класс для изменения объекта курса валюты
+    """
+    related_rate: float | None = None  # значение курса валют
+
+
+class CurrencyRelatedRateCreate(BaseModel):
+    """
+    Класс для изменения объекта курса валюты
+    """
+    currency_code: str  # название валюты (например 'USD')
+    date: date_t  # дата, в которой был данный курс валют
+    related_rate: float | None = None  # значение курса валют
+
+
 class CurrencyRateRead(CurrencyRateBase):
     """
     Класс для чтения (получения) объекта курса валюты
@@ -64,3 +80,14 @@ class CountryRead(CountryBase):
     Класс для чтения (просмотра) информации о валютах стран
     """
     id: int
+
+
+class Parameter(BaseModel):
+    currency_code: str
+    base_rate: float
+    date_of_base_rate: date_t
+
+
+class ParameterUpdate(BaseModel):
+    base_rate: float | None = None
+    date_of_base_rate: date_t | None = None
