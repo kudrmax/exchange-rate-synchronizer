@@ -12,19 +12,7 @@ from schemas import CurrencyRateCreate, CountryCreate
 
 from parser import RateParser
 
-from create_update import create_object, update_object
-
-
-def get_rate_by_code(
-        db: Session,
-        currency_code: str,
-        curr_date: date
-) -> Optional[CurrencyRateModel]:
-    query = select(CurrencyRateModel).where(CurrencyRateModel.currency_code == currency_code).where(
-        CurrencyRateModel.date == curr_date)
-    result = db.execute(query)
-    rate: CurrencyRateModel = result.scalar_one_or_none()
-    return rate
+from create_update import create_object, update_object, get_object
 
 
 def get_currency_rates(db: Session, start_date: date, end_date: date):
@@ -54,43 +42,21 @@ def sync_currency_rates(
         result = db.execute(query)
         rate: CurrencyRateModel = result.scalar_one_or_none()
         if rate:
-            update_currency_rate(db, currency_code=rate.currency_code, curr_date=rate.date, new_rate=rate_to_sync)
+            update_object(
+                db=db,
+                model=CurrencyRateModel,
+                obj_id=(rate.currency_code, rate.date),
+                schema=rate_to_sync
+            )
             was_updated_counter += 1
         else:
-            new_rate = CurrencyRateCreate(**rate_to_sync.model_dump())
-            create_currency_rate(db, new_rate=new_rate)
+            create_object(
+                db=db,
+                model=CurrencyRateModel,
+                schema=rate_to_sync
+            )
             was_created_counter += 1
     return was_updated_counter, was_created_counter
-
-
-def update_currency_rate(
-        db: Session,
-        currency_code: str,
-        curr_date: date,
-        new_rate: schemas.CurrencyRateUpdate
-):
-    rate = get_rate_by_code(db=db, currency_code=currency_code, curr_date=curr_date)
-    if rate:
-        new_rate_dict = new_rate.model_dump(exclude_unset=True)
-        for key, val in new_rate_dict.items():
-            setattr(rate, key, val)
-        db.commit()
-        db.refresh(rate)
-        return rate
-
-
-def create_currency_rate(
-        db: Session,
-        new_rate: CurrencyRateCreate
-):
-    rate = CurrencyRateModel(**new_rate.model_dump())
-    db.add(rate)
-    db.commit()
-    db.refresh(rate)
-    return rate
-
-
-##################################
 
 
 def sync_and_get_currency_related_rates(
@@ -127,8 +93,6 @@ def sync_and_get_currency_related_rates(
 
 
 def sync_base_rates(db: Session, base_date):
-
-
     parser = RateParser()
     rates_to_sync = parser.parse(base_date, base_date)
     sync_currency_rates(db, rates_to_sync=rates_to_sync)
