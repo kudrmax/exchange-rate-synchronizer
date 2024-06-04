@@ -71,19 +71,25 @@ def sync_and_get_currency_related_rates_endpoint(
         'CNY': 52207,  # китайский юань
     }
 
-
     for currency_code, _ in currency_codes.items():
-        query = select(CurrencyRateModel).where(CurrencyRateModel.date == base_date).where(
-            CurrencyRateModel.currency_code == currency_code)
+
+        query = select(CurrencyRateModel).where(CurrencyRateModel.date == base_date).where(CurrencyRateModel.currency_code == currency_code)
         result = db.execute(query)
         currency: CurrencyRateModel = result.scalar_one_or_none()
-        if currency:
+
+        param: Parameters = db.query(Parameters).get(currency_code)
+        if param:
+            setattr(param, 'base_rate', currency.rate)
+            setattr(param, 'date_of_base_rate', base_date)
+            db.commit()
+            db.refresh(param)
+        else:
             param = Parameters(
                 currency_code=currency_code,
                 base_rate=currency.rate,
                 date_of_base_rate=base_date,
             )
-            print(param)
+            db.get(currency_code)
             db.add(param)
             db.commit()
 
@@ -91,7 +97,6 @@ def sync_and_get_currency_related_rates_endpoint(
     result = db.execute(query)
     temp = list(result.scalars())
     print(*temp)
-
 
     # rates_to_sync = get_currency_rates(db, start_date, end_date)
     # base_rates = get_base_rates(db)
