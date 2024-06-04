@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
-
 class CountryModel(Base):
     __tablename__ = "countries"
 
@@ -24,8 +23,8 @@ class CurrencyRateModel(Base):
     )
 
 
-class RelatedCurrencyModel(Base):
-    __tablename__ = "related_currencies"
+class RelatedCurrencyRateModel(Base):
+    __tablename__ = "related_currencies_rates"
 
     currency_code = Column(String, primary_key=True, index=True)
     date = Column(Date, primary_key=True, index=True)
@@ -34,3 +33,14 @@ class RelatedCurrencyModel(Base):
     __table_args__ = (
         UniqueConstraint('currency_code', 'date'),
     )
+
+
+class Parameters(Base):
+    __tablename__ = "parameters"
+
+    currency_code = Column(String, primary_key=True, index=True)
+    base_rate = Column(Float)
+    date_of_base_rate = Column(Date)
+
+    def __repr__(self):
+        return f'{self.currency_code = }, {self.base_rate = }, {self.date_of_base_rate = }'

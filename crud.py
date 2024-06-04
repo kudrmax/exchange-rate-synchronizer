@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 from typing import List, Optional
 
@@ -8,13 +9,16 @@ import models, schemas
 from models import *  # @todo
 from schemas import CurrencyRateCreate, CountryCreate
 
+from parser import RateParser
+
 
 def get_rate_by_code(
         db: Session,
         currency_code: str,
         curr_date: date
 ) -> Optional[CurrencyRateModel]:
-    query = select(CurrencyRateModel).where(CurrencyRateModel.currency_code == currency_code).where(CurrencyRateModel.date == curr_date)
+    query = select(CurrencyRateModel).where(CurrencyRateModel.currency_code == currency_code).where(
+        CurrencyRateModel.date == curr_date)
     result = db.execute(query)
     rate: CurrencyRateModel = result.scalar_one_or_none()
     return rate
@@ -81,6 +85,53 @@ def create_currency_rate(
     db.commit()
     db.refresh(rate)
     return rate
+
+
+##################################
+
+
+def sync_and_get_currency_related_rates(
+        db: Session,
+        rates_to_sync: List[schemas.CurrencyRateUpdate]
+):
+    was_updated_counter = 0
+    was_created_counter = 0
+
+    for rate_to_sync in rates_to_sync:
+        # query = select(RelatedCurrencyRateModel).where(RelatedCurrencyRateModel.date == rate_to_sync.date).where(
+        #     RelatedCurrencyRateModel.currency_code == rate_to_sync.currency_code)
+        # result = db.execute(query)
+        # rate: RelatedCurrencyRateModel = result.scalar_one_or_none()
+
+        # получить базовое значение rate
+        # если оно пустое, то синхронизировать
+
+        sync_base_rates(db)
+
+        # получить базовое значение rate
+        # получить из пришедшего rate и базового значения related_rate
+        # обновить или добавить
+
+        # if rate:
+        #     update_currency_rate(db, currency_code=rate.currency_code, curr_date=rate.date, new_rate=rate_to_sync)
+        #     was_updated_counter += 1
+        # else:
+        #     new_rate = CurrencyRateCreate(**rate_to_sync.model_dump())
+        #     create_currency_rate(db, new_rate=new_rate)
+        #     was_created_counter += 1
+        pass
+    return was_updated_counter, was_created_counter
+
+
+def sync_base_rates(db: Session, base_date):
+
+
+    parser = RateParser()
+    rates_to_sync = parser.parse(base_date, base_date)
+    sync_currency_rates(db, rates_to_sync=rates_to_sync)
+    rates_from_db = get_currency_rates(db, base_date,
+                                       base_date)  # @todo сделать так, чтобы get обязательно перед этим делал sync
+    print(rates_from_db)
 
 
 ##################################

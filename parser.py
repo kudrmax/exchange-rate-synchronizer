@@ -83,6 +83,7 @@ class RateParser(CurrencyParserBase):
         return rates
 
 
+
 class CountryCurrencyParser(CurrencyParserBase):
     def __init__(self):
         self.url = "https://www.iban.ru/currency-codes"
