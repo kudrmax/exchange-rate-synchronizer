@@ -12,6 +12,10 @@ from crud import sync_currency_rates, get_currency_rates, sync_counties, get_cou
     sync_and_get_currency_related_rates
 from models import Base
 
+from create_update import create_object, update_object, get_object
+
+from schemas import *
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -56,9 +60,10 @@ def sync_and_get_currency_related_rates_endpoint(
         end_date: date,
         db: Session = Depends(get_db)
 ):
-    base_date = date(2020, 1, 1)
-
     sync_and_get_currency_rates_endpoint(start_date, end_date, db)
+
+    # обновление baserate
+    base_date = date(2020, 1, 1)
     sync_and_get_currency_rates_endpoint(base_date, base_date, db)
 
     currency_codes = {
@@ -79,27 +84,35 @@ def sync_and_get_currency_related_rates_endpoint(
 
         param: Parameters = db.query(Parameters).get(currency_code)
         if param:
-            setattr(param, 'base_rate', currency.rate)
-            setattr(param, 'date_of_base_rate', base_date)
-            db.commit()
-            db.refresh(param)
+            new_parameter = ParameterUpdate(
+                base_rate=currency.rate,
+                date_of_base_rate=base_date,
+            )
+            update_object(
+                db=db,
+                model=Parameters,
+                obj_id=currency_code,
+                schema=new_parameter
+            )
         else:
-            param = Parameters(
+            new_parameter = Parameter(
                 currency_code=currency_code,
                 base_rate=currency.rate,
                 date_of_base_rate=base_date,
             )
-            db.get(currency_code)
-            db.add(param)
-            db.commit()
+            create_object(
+                db=db,
+                model=Parameters,
+                schema=new_parameter
+            )
 
-    query = select(Parameters).where(True)
-    result = db.execute(query)
-    temp = list(result.scalars())
-    print(*temp)
+    # query = select(Parameters).where(True)
+    # result = db.execute(query)
+    # temp = list(result.scalars())
+    # print(*temp)
 
-    # rates_to_sync = get_currency_rates(db, start_date, end_date)
-    # base_rates = get_base_rates(db)
+    # обновление БД
+
     # was_updated_counter_related_rates, was_created_counter_related_rates = sync_and_get_currency_related_rates(db, rates_to_sync=rates_to_sync, base_rates=base_rates)
 
     # rates_from_db = get_currency_rates(db, start_date, end_date)
