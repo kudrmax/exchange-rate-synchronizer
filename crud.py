@@ -5,11 +5,14 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-import models, schemas
+import models
+import schemas
 from models import *  # @todo
 from schemas import CurrencyRateCreate, CountryCreate
 
 from parser import RateParser
+
+from create_update import create_object, update_object
 
 
 def get_rate_by_code(
@@ -164,42 +167,19 @@ def sync_counties(
     for country_to_sync in countries_to_sync:
         country: CountryModel = db.query(models.CountryModel).get(country_to_sync.country)
         if country:  # если такая страна нашлась, то обновляем ее актуальными данными
-            country_to_sync_dict = country_to_sync.model_dump(exclude_unset=True)
-            for key, val in country_to_sync_dict.items():
-                setattr(country, key, val)
-            db.commit()
-            db.refresh(country)
+            update_object(
+                db=db,
+                model=CountryModel,
+                obj_id=country.country,
+                schema=country_to_sync
+            )
             was_updated_counter += 1
         else:
-            country = CountryModel(**country_to_sync.model_dump())
-            db.add(country)
-            db.commit()
-            db.refresh(country)
+            create_object(
+                db=db,
+                model=CountryModel,
+                schema=country_to_sync
+            )
             was_created_counter += 1
 
     return was_updated_counter, was_created_counter
-
-# def update_country(
-#         db: Session,
-#         country: str,
-#         update_country: schemas.CountryUpdate
-# ):
-#     country = get_country_by_id(db=db, country_id=country_id)
-#     if country:
-#         new_country_dict = update_country.model_dump(exclude_unset=True)
-#         for key, val in new_country_dict.items():
-#             setattr(country, key, val)
-#         db.commit()
-#         db.refresh(country)
-#         return country
-#
-#
-# def create_country(
-#         db: Session,
-#         new_country: CountryCreate
-# ):
-#     country = CountryModel(**new_country.model_dump())
-#     db.add(country)
-#     db.commit()
-#     db.refresh(country)
-#     return country
