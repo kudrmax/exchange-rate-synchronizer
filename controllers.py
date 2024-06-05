@@ -16,7 +16,7 @@ from schemas import (
     CountryUpdate,
     ParameterUpdate,
     CurrencyRelatedRateCreate,
-    CurrencyRelatedRateUpdate
+    CurrencyRelatedRateUpdate, CurrencyRateUpdate
 )
 from parser import RateParser, CountryCurrencyParser
 from create_update import create_object, update_object, get_object
@@ -43,7 +43,7 @@ class CurrencyController:
         ).all()
 
     def sync_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
-        rates_to_sync = self.parser.parse(start_date, end_date, currency_codes)
+        rates_to_sync: List[CurrencyRateUpdate] = self.parser.parse(start_date, end_date, currency_codes)
 
         was_updated_counter = 0
         was_created_counter = 0
@@ -54,13 +54,14 @@ class CurrencyController:
             result = db.execute(query)
             rate: CurrencyRateModel = result.scalar_one_or_none()
             if rate:
-                update_object(
-                    db=db,
-                    model=CurrencyRateModel,
-                    obj_id=(rate.currency_code, rate.date),
-                    schema=rate_to_sync
-                )
-                was_updated_counter += 1
+                if rate.rate != rate_to_sync.rate:
+                    update_object(
+                        db=db,
+                        model=CurrencyRateModel,
+                        obj_id=(rate.currency_code, rate.date),
+                        schema=rate_to_sync
+                    )
+                    was_updated_counter += 1
             else:
                 create_object(
                     db=db,
@@ -88,15 +89,16 @@ class CurrencyController:
                 existing_related_rate: RelatedCurrencyRateModel = result.scalar_one_or_none()
 
                 if existing_related_rate:
-                    update_object(
-                        db=db,
-                        model=RelatedCurrencyRateModel,
-                        obj_id=(currency_code, related_rate.date),
-                        schema=CurrencyRelatedRateUpdate(
-                            related_rate=related_rate_value
+                    if existing_related_rate.related_rate != related_rate_value:
+                        update_object(
+                            db=db,
+                            model=RelatedCurrencyRateModel,
+                            obj_id=(currency_code, related_rate.date),
+                            schema=CurrencyRelatedRateUpdate(
+                                related_rate=related_rate_value
+                            )
                         )
-                    )
-                    was_updated_counter += 1
+                        was_updated_counter += 1
                 else:
                     create_object(
                         db=db,
@@ -125,17 +127,18 @@ class CurrencyController:
 
             param: ParametersModel = db.query(ParametersModel).get(currency_code)
             if param:
-                new_parameter = ParameterUpdate(
-                    base_rate=currency.rate,
-                    date_of_base_rate=base_date,
-                )
-                update_object(
-                    db=db,
-                    model=ParametersModel,
-                    obj_id=currency_code,
-                    schema=new_parameter
-                )
-                was_updated_counter += 1
+                if param.base_rate != currency.rate:
+                    new_parameter = ParameterUpdate(
+                        base_rate=currency.rate,
+                        date_of_base_rate=base_date,
+                    )
+                    update_object(
+                        db=db,
+                        model=ParametersModel,
+                        obj_id=currency_code,
+                        schema=new_parameter
+                    )
+                    was_updated_counter += 1
             else:
                 new_parameter = ParametersModel(
                     currency_code=currency_code,
@@ -182,39 +185,28 @@ class CountryController:
 
     @staticmethod
     def sync_counties(db: Session, countries_to_sync: List[CountryUpdate]):
-        was_updated_counter = 0
-        was_created_counter = 0
-
         for country_to_sync in countries_to_sync:
             country: CountryModel = db.query(CountryModel).get(country_to_sync.country)
             if country:
-                update_object(
-                    db=db,
-                    model=CountryModel,
-                    obj_id=country.country,
-                    schema=country_to_sync
-                )
-                was_updated_counter += 1
+                if country.currency_name != country_to_sync.currency_name or country.currency_code != country_to_sync.currency_code:
+                    update_object(
+                        db=db,
+                        model=CountryModel,
+                        obj_id=country.country,
+                        schema=country_to_sync
+                    )
             else:
                 create_object(
                     db=db,
                     model=CountryModel,
                     schema=country_to_sync
                 )
-                was_created_counter += 1
-
-        return was_updated_counter, was_created_counter
 
     def sync_and_get_countries(self, db: Session):
         countries = self.parser.parse()
-        was_updated_counter, was_created_counter = self.sync_counties(db, countries_to_sync=countries)
+        self.sync_counties(db, countries_to_sync=countries)
         country_currencies = self.get_countries(db)
-        result = {
-            'was_updated': was_updated_counter,
-            'was_created': was_created_counter,
-            'data': country_currencies
-        }
-        return result
+        return country_currencies
 
 
 class PlotController:

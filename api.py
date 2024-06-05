@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Body
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from datetime import date
@@ -27,9 +27,12 @@ class CurrencyAPI:
             self,
             start_date: date,
             end_date: date,
-            currency_codes: List[str],
-            db: Session = Depends(get_db)
+            currency_codes: List[str] = Body(default=None, example=['USD', 'EUR', 'GBP', 'JPY', 'TRY', 'INR', 'CNY']),
+            db: Session = Depends(get_db),
     ):
+        if currency_codes is None:
+            currency_codes = self.currency_controller.currency_codes
+        print(self.currency_controller.currency_codes)
         result = self.currency_controller.sync_and_get_currency_rates(db, start_date, end_date, currency_codes)
         return result
 
