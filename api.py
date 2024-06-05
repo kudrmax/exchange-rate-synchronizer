@@ -55,6 +55,8 @@ class CurrencyAPI:
             countries: List[str],
             db: Session = Depends(get_db)
     ):
+        self.currency_controller.sync_and_get_currency_related_rates(db, start_date, end_date)
+
         codes = []
         for country in countries:
             query = select(CountryModel).where(CountryModel.country == country)
@@ -71,12 +73,5 @@ class CurrencyAPI:
 
         self.plot_controller.draw_plot(related_rates)
 
-
-
-
         return related_rates
 
-        # построить график
-
-        # result = self.plot_controller.draw_plot(db, start_date, end_date, countries)
-        return result
