@@ -93,7 +93,8 @@ class CurrencyAPI:
                     country_to_currency_code[country] = currency_code
 
         currency_codes = list(set(country_to_currency_code.values()))
-        self.currency_controller.sync_and_get_currency_related_rates(db, start_date, end_date, currency_codes)
+        res = self.currency_controller.sync_and_get_currency_related_rates(db, start_date, end_date, currency_codes)
+        was_updated_counter, was_created_counter = res['was_updated'], res['was_created']
 
         # получить список related валют за даты
         query = select(RelatedCurrencyRateModel).where(
@@ -103,6 +104,13 @@ class CurrencyAPI:
         result = db.execute(query)
         related_rates = result.scalars().all()
 
-        self.plot_controller.draw_plot(related_rates, start_date, end_date, country_to_currency_code)
+        plot_link = self.plot_controller.draw_plot(related_rates, start_date, end_date, country_to_currency_code)
 
-        return related_rates
+        result = {
+            'was_updated': was_updated_counter,
+            'was_created': was_created_counter,
+            'plot_link': plot_link,
+            'data': related_rates,
+        }
+
+        return result
