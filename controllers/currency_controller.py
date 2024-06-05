@@ -1,30 +1,13 @@
-from collections import defaultdict
-
-import pandas as pd
-from matplotlib import pyplot as plt
-from sqlalchemy.orm import Session
 from datetime import date
-from typing import List, Optional, Dict, Any
+from typing import List
+
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from crud import CRUD
-from models import (
-    CurrencyRateModel,
-    RelatedCurrencyRateModel,
-    ParametersModel,
-    CountryModel
-)
-from schemas import (
-    CountryUpdate,
-    ParameterUpdate,
-    CurrencyRelatedRateCreate,
-    CurrencyRelatedRateUpdate, CurrencyRateUpdate
-)
-from parser import RateParser, CountryCurrencyParser
-
-
-class BaseController(CRUD):
-    pass
+from base_controller import BaseController
+from models import CurrencyRateModel, RelatedCurrencyRateModel, ParametersModel
+from parser import RateParser
+from schemas import CurrencyRateUpdate, CurrencyRelatedRateUpdate, CurrencyRelatedRateCreate, ParameterUpdate
 
 
 class CurrencyController(BaseController):
@@ -181,70 +164,3 @@ class CurrencyController(BaseController):
             'data': currency_rates
         }
         return result
-
-
-class CountryController(BaseController):
-    def __init__(self):
-        self.parser = CountryCurrencyParser()
-
-    @staticmethod
-    def get_countries(db: Session):
-        return db.query(CountryModel).all()
-
-    def sync_counties(self, db: Session, countries_to_sync: List[CountryUpdate]):
-        for country_to_sync in countries_to_sync:
-            country: CountryModel = db.query(CountryModel).get(country_to_sync.country)
-            if country:
-                if country.currency_name != country_to_sync.currency_name or country.currency_code != country_to_sync.currency_code:
-                    self.update_object(
-                        db=db,
-                        model=CountryModel,
-                        obj_id=country.country,
-                        schema=country_to_sync
-                    )
-            else:
-                self.create_object(
-                    db=db,
-                    model=CountryModel,
-                    schema=country_to_sync
-                )
-
-    def sync_and_get_countries(self, db: Session):
-        countries = self.parser.parse()
-        self.sync_counties(db, countries_to_sync=countries)
-        country_currencies = self.get_countries(db)
-        return country_currencies
-
-
-class PlotController:
-    @staticmethod
-    def draw_plot(related_rates, start_date: date, end_date: date, country_to_currency_code):
-        currency_data = {}
-        for related_rate in related_rates:
-            if related_rate.currency_code not in currency_data:
-                currency_data[related_rate.currency_code] = {'data': [], 'countries': []}
-            currency_data[related_rate.currency_code]['data'].append([related_rate.date, related_rate.related_rate])
-        for country, currency_code in country_to_currency_code.items():
-            currency_data[currency_code]['countries'].append(country)
-
-        plt.figure(figsize=(10, 6))
-        plt.title('Относительное изменение курсов валют', fontsize=16)
-        for currency_code, value in currency_data.items():
-            data = value['data']
-            countries = value['countries']
-            df = pd.DataFrame(data, columns=['date', 'related_rate'])
-            df['date'] = pd.to_datetime(df['date'])
-            df = df.sort_values(by='date')
-            counties_label = ", ".join(countries)
-            counties_label = counties_label[:50 - 3] + '...' if len(counties_label) > 50 else counties_label
-            plt.plot(df['date'], df['related_rate'], label=f'{currency_code} в странах: {counties_label}')
-            # plt.plot(df['date'], df['related_rate'], label=f'{currency_code}')
-        plt.xlabel('Дата', fontsize=12)
-        plt.ylabel('Относительное изменение курсов валют', fontsize=12)
-        plt.grid(alpha=0.4)
-        plt.legend(title='Валюты', fontsize=10, title_fontsize=12)
-        plt.tight_layout()
-        plot_link = f'plots/{start_date}-{end_date}-{"-".join(currency_data.keys())}.png'
-        plt.savefig(plot_link)
-        plt.close()
-        return plot_link

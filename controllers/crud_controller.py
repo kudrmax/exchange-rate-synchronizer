@@ -7,7 +7,7 @@ SchemaType = TypeVar('SchemaType', bound=BaseModel)
 ModelType = TypeVar('ModelType')
 
 
-class CRUD:
+class CRUDController:
 
     @classmethod
     def create_object(cls, db: Session, model: Type[ModelType], schema: SchemaType) -> ModelType:
