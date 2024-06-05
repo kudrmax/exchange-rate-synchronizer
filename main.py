@@ -9,4 +9,4 @@ Base.metadata.create_all(bind=engine)
 api = CurrencyAPI()
 
 if __name__ == "__main__":
-    uvicorn.run('main_OOP:api.app', host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run('main:api.app', host="0.0.0.0", port=8000, reload=True)
