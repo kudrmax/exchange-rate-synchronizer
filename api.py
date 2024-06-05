@@ -40,9 +40,11 @@ class CurrencyAPI:
             self,
             start_date: date,
             end_date: date,
-            currency_codes: List[str],
+            currency_codes: List[str] = Body(default=None, example=['USD', 'EUR', 'GBP', 'JPY', 'TRY', 'INR', 'CNY']),
             db: Session = Depends(get_db)
     ):
+        if currency_codes is None:
+            currency_codes = self.currency_controller.currency_codes
         result = self.currency_controller.sync_and_get_currency_related_rates(db, start_date, end_date, currency_codes)
         return result
 
@@ -55,11 +57,33 @@ class CurrencyAPI:
 
     def draw_plot(
             self,
-            start_date: date,
-            end_date: date,
-            countries: List[str],
+            start_date: date = date(2020, 1, 1),
+            end_date: date = date(2020, 1, 1),
+            countries: List[str] = Body(default=None, example=['Китай', 'Аландские острова', 'Андорра', 'Австрия', 'Бельгия', 'Кипр', 'Эстония',
+                         'Европейский Союх', 'Финляндия', 'Франция', 'Гвиана',
+                         'Французские Южные и Антарктические территории', 'Германия', 'Греция', 'Гваделупа', 'Ватикан',
+                         'Ирландия', 'Италия', 'Латвия', 'Литва', 'Люксембург', 'Мальта', 'Мартиника', 'Майотта',
+                         'Монако', 'Черногория', 'Голландия', 'Португалия', 'Реуньон', 'Сен-Бартелеми', 'Сен-Мартин',
+                         'Сен-Пьер и Микелон', 'Сан-Марино', 'Словакия', 'Словения', 'Испания', 'Гернси', 'Остров Мен',
+                         'Джерси', 'Великобритания', 'Бутан', 'Индия', 'Япония', 'Турция', 'Американское Самоа',
+                         'Бонэйр', 'Британские территории в Индийском Океане', 'Эквадор', 'Сальвадор', 'Гуам', 'Гаити',
+                         'Маршалловы острова', 'Микронезия', 'Северные Марианские острова', 'Палау', 'Панама',
+                         'Пуэрто-Рико', 'Западный Тимор', 'Тёркс и Кайкос', 'Острова США',
+                         'Британские Виргинские Острова', 'Виргинские Острова']),
             db: Session = Depends(get_db)
     ):
+        if countries is None:
+            countries = ['Китай', 'Аландские острова', 'Андорра', 'Австрия', 'Бельгия', 'Кипр', 'Эстония',
+                         'Европейский Союх', 'Финляндия', 'Франция', 'Гвиана',
+                         'Французские Южные и Антарктические территории', 'Германия', 'Греция', 'Гваделупа', 'Ватикан',
+                         'Ирландия', 'Италия', 'Латвия', 'Литва', 'Люксембург', 'Мальта', 'Мартиника', 'Майотта',
+                         'Монако', 'Черногория', 'Голландия', 'Португалия', 'Реуньон', 'Сен-Бартелеми', 'Сен-Мартин',
+                         'Сен-Пьер и Микелон', 'Сан-Марино', 'Словакия', 'Словения', 'Испания', 'Гернси', 'Остров Мен',
+                         'Джерси', 'Великобритания', 'Бутан', 'Индия', 'Япония', 'Турция', 'Американское Самоа',
+                         'Бонэйр', 'Британские территории в Индийском Океане', 'Эквадор', 'Сальвадор', 'Гуам', 'Гаити',
+                         'Маршалловы острова', 'Микронезия', 'Северные Марианские острова', 'Палау', 'Панама',
+                         'Пуэрто-Рико', 'Западный Тимор', 'Тёркс и Кайкос', 'Острова США',
+                         'Британские Виргинские Острова', 'Виргинские Острова']
         country_to_currency_code = {}
         for country in countries:
             country_model = db.query(CountryModel).get(country)
@@ -72,7 +96,8 @@ class CurrencyAPI:
         self.currency_controller.sync_and_get_currency_related_rates(db, start_date, end_date, currency_codes)
 
         # получить список related валют за даты
-        query = select(RelatedCurrencyRateModel).where(RelatedCurrencyRateModel.currency_code.in_(currency_codes)).where(
+        query = select(RelatedCurrencyRateModel).where(
+            RelatedCurrencyRateModel.currency_code.in_(currency_codes)).where(
             RelatedCurrencyRateModel.date >= start_date, RelatedCurrencyRateModel.date <= end_date
         )
         result = db.execute(query)
