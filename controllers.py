@@ -1,3 +1,7 @@
+from collections import defaultdict
+
+import pandas as pd
+from matplotlib import pyplot as plt
 from sqlalchemy.orm import Session
 from datetime import date
 from typing import List, Optional, Dict, Any
@@ -218,3 +222,26 @@ class CountryController:
             'data': country_currencies
         }
         return result
+
+
+class PlotController:
+    def draw_plot(self, related_rates):
+        currency_data = defaultdict(list)
+        for related_rate in related_rates:
+            currency_data[related_rate.currency_code].append([related_rate.date, related_rate.related_rate])
+
+        plt.figure(figsize=(10, 6))
+        for currency_code, data in currency_data.items():
+            print(currency_code)
+            df = pd.DataFrame(data, columns=['date', 'related_rate'])
+            df['date'] = pd.to_datetime(df['date'])
+            df = df.sort_values(by='date')
+
+            plt.plot(df['date'], df['related_rate'], label=currency_code)
+            plt.title(f'Относительное изменения курсов валют {currency_code}')
+            plt.xlabel('Дата')
+            plt.ylabel('Относительное изменения курсов валют')
+            plt.grid(True)
+        plt.legend()
+        plt.savefig('plots/img.png')
+        plt.close()
