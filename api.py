@@ -25,8 +25,8 @@ class CurrencyAPI:
 
     def sync_and_get_currency_rates_endpoint(
             self,
-            start_date: date,
-            end_date: date,
+            start_date: date = date(2020, 1, 1),
+            end_date: date = date(2020, 1, 30),
             currency_codes: List[str] = Body(default=None, example=['USD', 'EUR', 'GBP', 'JPY', 'TRY', 'INR', 'CNY']),
             db: Session = Depends(get_db),
     ):
@@ -38,8 +38,8 @@ class CurrencyAPI:
 
     def sync_and_get_currency_related_rates_endpoint(
             self,
-            start_date: date,
-            end_date: date,
+            start_date: date = date(2020, 1, 1),
+            end_date: date = date(2020, 1, 30),
             currency_codes: List[str] = Body(default=None, example=['USD', 'EUR', 'GBP', 'JPY', 'TRY', 'INR', 'CNY']),
             db: Session = Depends(get_db)
     ):
@@ -58,7 +58,7 @@ class CurrencyAPI:
     def draw_plot(
             self,
             start_date: date = date(2020, 1, 1),
-            end_date: date = date(2020, 1, 1),
+            end_date: date = date(2020, 1, 30),
             countries: List[str] = Body(default=None, example=['Китай', 'Аландские острова', 'Андорра', 'Австрия', 'Бельгия', 'Кипр', 'Эстония',
                          'Европейский Союх', 'Финляндия', 'Франция', 'Гвиана',
                          'Французские Южные и Антарктические территории', 'Германия', 'Греция', 'Гваделупа', 'Ватикан',
