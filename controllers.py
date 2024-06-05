@@ -25,15 +25,7 @@ from create_update import create_object, update_object, get_object
 class CurrencyController:
     def __init__(self):
         self.parser = RateParser()
-        self.currency_codes = {
-            'USD': 52148,
-            'EUR': 52170,
-            'GBP': 52146,
-            'JPY': 52246,
-            'TRY': 52158,
-            'INR': 52238,
-            'CNY': 52207,
-        }
+        self.currency_codes = self.parser.currency_codes_urls.keys()
 
     @staticmethod
     def get_currency_rates(db: Session, start_date: date, end_date: date, currency_codes: List[str]):
@@ -227,18 +219,24 @@ class CountryController:
 
 class PlotController:
     @staticmethod
-    def draw_plot(related_rates, start_date, end_date):
-        currency_data = defaultdict(list)
+    def draw_plot(related_rates, start_date: date, end_date: date, country_to_currency_code):
+        currency_data = {}
         for related_rate in related_rates:
-            currency_data[related_rate.currency_code].append([related_rate.date, related_rate.related_rate])
+            if related_rate.currency_code not in currency_data:
+                currency_data[related_rate.currency_code] = {'data': [], 'countries': []}
+            currency_data[related_rate.currency_code]['data'].append([related_rate.date, related_rate.related_rate])
+        for country, currency_code in country_to_currency_code.items():
+            currency_data[currency_code]['countries'].append(country)
 
         plt.figure(figsize=(10, 6))
         plt.title('Относительное изменение курсов валют', fontsize=16)
-        for currency_code, data in currency_data.items():
+        for currency_code, value in currency_data.items():
+            data = value['data']
+            countries = value['countries']
             df = pd.DataFrame(data, columns=['date', 'related_rate'])
             df['date'] = pd.to_datetime(df['date'])
             df = df.sort_values(by='date')
-            plt.plot(df['date'], df['related_rate'], label=currency_code)
+            plt.plot(df['date'], df['related_rate'], label=f'{currency_code} в странах: {", ".join(countries)}')
         plt.xlabel('Дата', fontsize=12)
         plt.ylabel('Относительное изменение курсов валют', fontsize=12)
         plt.grid(alpha=0.4)
