@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from datetime import date
 from typing import List, Optional, Dict, Any
 from sqlalchemy import select
+
+from crud import CRUD
 from models import (
     CurrencyRateModel,
     RelatedCurrencyRateModel,
@@ -19,10 +21,13 @@ from schemas import (
     CurrencyRelatedRateUpdate, CurrencyRateUpdate
 )
 from parser import RateParser, CountryCurrencyParser
-from create_update import create_object, update_object, get_object
 
 
-class CurrencyController:
+class BaseController(CRUD):
+    pass
+
+
+class CurrencyController(BaseController):
     def __init__(self):
         self.parser = RateParser()
         self.currency_codes = self.parser.currency_codes_urls.keys()
@@ -55,7 +60,7 @@ class CurrencyController:
             rate: CurrencyRateModel = result.scalar_one_or_none()
             if rate:
                 if rate.rate != rate_to_sync.rate:
-                    update_object(
+                    self.update_object(
                         db=db,
                         model=CurrencyRateModel,
                         obj_id=(rate.currency_code, rate.date),
@@ -63,7 +68,7 @@ class CurrencyController:
                     )
                     was_updated_counter += 1
             else:
-                create_object(
+                self.create_object(
                     db=db,
                     model=CurrencyRateModel,
                     schema=rate_to_sync
@@ -90,7 +95,7 @@ class CurrencyController:
 
                 if existing_related_rate:
                     if existing_related_rate.related_rate != related_rate_value:
-                        update_object(
+                        self.update_object(
                             db=db,
                             model=RelatedCurrencyRateModel,
                             obj_id=(currency_code, related_rate.date),
@@ -100,7 +105,7 @@ class CurrencyController:
                         )
                         was_updated_counter += 1
                 else:
-                    create_object(
+                    self.create_object(
                         db=db,
                         model=RelatedCurrencyRateModel,
                         schema=CurrencyRelatedRateCreate(
@@ -132,7 +137,7 @@ class CurrencyController:
                         base_rate=currency.rate,
                         date_of_base_rate=base_date,
                     )
-                    update_object(
+                    self.update_object(
                         db=db,
                         model=ParametersModel,
                         obj_id=currency_code,
@@ -145,7 +150,7 @@ class CurrencyController:
                     base_rate=currency.rate,
                     date_of_base_rate=base_date,
                 )
-                create_object(
+                self.create_object(
                     db=db,
                     model=ParametersModel,
                     schema=new_parameter
@@ -163,9 +168,12 @@ class CurrencyController:
         }
         return result
 
-    def sync_and_get_currency_related_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
-        was_updated_counter_base, was_created_counter_base = self.sync_base_currency_rates(db, start_date, end_date, currency_codes)
-        was_updated_counter_rel, was_created_counter_rel = self.sync_related_currency_rates(db, start_date, end_date, currency_codes)
+    def sync_and_get_currency_related_rates(self, db: Session, start_date: date, end_date: date,
+                                            currency_codes: List[str]):
+        was_updated_counter_base, was_created_counter_base = self.sync_base_currency_rates(db, start_date, end_date,
+                                                                                           currency_codes)
+        was_updated_counter_rel, was_created_counter_rel = self.sync_related_currency_rates(db, start_date, end_date,
+                                                                                            currency_codes)
         currency_rates = self.get_related_currency_rates(db, start_date, end_date)
         result = {
             'was_updated': was_updated_counter_base + was_updated_counter_rel,
@@ -175,7 +183,7 @@ class CurrencyController:
         return result
 
 
-class CountryController:
+class CountryController(BaseController):
     def __init__(self):
         self.parser = CountryCurrencyParser()
 
@@ -183,20 +191,19 @@ class CountryController:
     def get_countries(db: Session):
         return db.query(CountryModel).all()
 
-    @staticmethod
-    def sync_counties(db: Session, countries_to_sync: List[CountryUpdate]):
+    def sync_counties(self, db: Session, countries_to_sync: List[CountryUpdate]):
         for country_to_sync in countries_to_sync:
             country: CountryModel = db.query(CountryModel).get(country_to_sync.country)
             if country:
                 if country.currency_name != country_to_sync.currency_name or country.currency_code != country_to_sync.currency_code:
-                    update_object(
+                    self.update_object(
                         db=db,
                         model=CountryModel,
                         obj_id=country.country,
                         schema=country_to_sync
                     )
             else:
-                create_object(
+                self.create_object(
                     db=db,
                     model=CountryModel,
                     schema=country_to_sync
