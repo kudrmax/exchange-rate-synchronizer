@@ -225,35 +225,23 @@ class CountryController:
 
 
 class PlotController:
-    def draw_plot(self, related_rates):
+    @staticmethod
+    def draw_plot(related_rates, start_date, end_date):
         currency_data = defaultdict(list)
         for related_rate in related_rates:
             currency_data[related_rate.currency_code].append([related_rate.date, related_rate.related_rate])
 
-        colors = plt.cm.tab10.colors
         plt.figure(figsize=(10, 6))
+        plt.title('Относительное изменение курсов валют', fontsize=16)
         for currency_code, data in currency_data.items():
             df = pd.DataFrame(data, columns=['date', 'related_rate'])
             df['date'] = pd.to_datetime(df['date'])
             df = df.sort_values(by='date')
             plt.plot(df['date'], df['related_rate'], label=currency_code)
-        plt.title('Относительное изменение курсов валют', fontsize=16)
         plt.xlabel('Дата', fontsize=12)
-        # plt.xticks(rotation=90)
-        # from matplotlib.dates import MonthLocator
-        # ax = plt.gca()
-        # ax.xaxis.set_major_locator(MonthLocator())  # Основные деления - каждый месяц
         plt.ylabel('Относительное изменение курсов валют', fontsize=12)
         plt.grid(alpha=0.4)
-        # plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-        # plt.grid(which='major', linestyle='-', linewidth='0.5', color='gray')
-        # plt.grid(which='minor', linestyle=':', linewidth='0.5', color='gray')
-        # ax = plt.gca()
-        # from matplotlib.dates import DateFormatter, MonthLocator
-        # ax.xaxis.set_major_locator(MonthLocator())  # Основные деления - каждый месяц
-        # ax.xaxis.set_major_formatter(DateFormatter('%Y-%m'))  # Формат даты для основных делений
-        # ax.xaxis.set_minor_locator(MonthLocator(bymonthday=15))  # Второстепенные деления - середина каждого месяца
         plt.legend(title='Валюты', fontsize=12, title_fontsize=14)
         plt.tight_layout()
-        plt.savefig('plots/img.png')
+        plt.savefig(f'plots/{start_date}-{end_date}-{"-".join(currency_data.keys())}.png')
         plt.close()

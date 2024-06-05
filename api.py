@@ -71,7 +71,7 @@ class CurrencyAPI:
         result = db.execute(query)
         related_rates = result.scalars().all()
 
-        self.plot_controller.draw_plot(related_rates)
+        self.plot_controller.draw_plot(related_rates, start_date, end_date)
 
         return related_rates
 
