@@ -36,10 +36,11 @@ class CurrencyController:
         }
 
     @staticmethod
-    def get_currency_rates(db: Session, start_date: date, end_date: date):
+    def get_currency_rates(db: Session, start_date: date, end_date: date, currency_codes: List[str]):
         return db.query(CurrencyRateModel).filter(
             CurrencyRateModel.date >= start_date,
-            CurrencyRateModel.date <= end_date
+            CurrencyRateModel.date <= end_date,
+            CurrencyRateModel.currency_code.in_(currency_codes)
         ).all()
 
     @staticmethod
@@ -49,8 +50,8 @@ class CurrencyController:
             RelatedCurrencyRateModel.date <= end_date
         ).all()
 
-    def sync_currency_rates(self, db: Session, start_date: date, end_date: date):
-        rates_to_sync = self.parser.parse(start_date, end_date)
+    def sync_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        rates_to_sync = self.parser.parse(start_date, end_date, currency_codes)
 
         was_updated_counter = 0
         was_created_counter = 0
@@ -77,11 +78,11 @@ class CurrencyController:
                 was_created_counter += 1
         return was_updated_counter, was_created_counter
 
-    def sync_related_currency_rates(self, db: Session, start_date: date, end_date: date):
+    def sync_related_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
         was_updated_counter, was_created_counter = 0, 0
 
-        self.sync_currency_rates(db, start_date, end_date)
-        related_rates_to_sync = self.get_currency_rates(db, start_date, end_date)
+        self.sync_currency_rates(db, start_date, end_date, currency_codes)
+        related_rates_to_sync = self.get_currency_rates(db, start_date, end_date, currency_codes)
 
         for related_rate in related_rates_to_sync:
             currency_code = related_rate.currency_code
@@ -117,14 +118,14 @@ class CurrencyController:
                     was_created_counter += 1
         return was_updated_counter, was_created_counter
 
-    def sync_base_currency_rates(self, db: Session, start_date: date, end_date: date):
+    def sync_base_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
         was_created_counter = 0
         was_updated_counter = 0
 
         base_date = date(2020, 1, 1)
-        self.sync_currency_rates(db, start_date, end_date)
+        self.sync_currency_rates(db, start_date, end_date, currency_codes)
 
-        for currency_code, _ in self.currency_codes.items():
+        for currency_code in currency_codes:
             query = select(CurrencyRateModel).where(CurrencyRateModel.date == base_date).where(
                 CurrencyRateModel.currency_code == currency_code)
             result = db.execute(query)
@@ -157,9 +158,9 @@ class CurrencyController:
                 was_created_counter += 1
         return was_updated_counter, was_created_counter
 
-    def sync_and_get_currency_rates(self, db: Session, start_date: date, end_date: date):
-        was_updated_counter, was_created_counter = self.sync_currency_rates(db, start_date, end_date)
-        currency_rates = self.get_currency_rates(db, start_date, end_date)
+    def sync_and_get_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        was_updated_counter, was_created_counter = self.sync_currency_rates(db, start_date, end_date, currency_codes)
+        currency_rates = self.get_currency_rates(db, start_date, end_date, currency_codes)
         result = {
             'was_updated': was_updated_counter,
             'was_created': was_created_counter,
@@ -167,9 +168,9 @@ class CurrencyController:
         }
         return result
 
-    def sync_and_get_currency_related_rates(self, db: Session, start_date: date, end_date: date):
-        was_updated_counter_base, was_created_counter_base = self.sync_base_currency_rates(db, start_date, end_date)
-        was_updated_counter_rel, was_created_counter_rel = self.sync_related_currency_rates(db, start_date, end_date)
+    def sync_and_get_currency_related_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        was_updated_counter_base, was_created_counter_base = self.sync_base_currency_rates(db, start_date, end_date, currency_codes)
+        was_updated_counter_rel, was_created_counter_rel = self.sync_related_currency_rates(db, start_date, end_date, currency_codes)
         currency_rates = self.get_related_currency_rates(db, start_date, end_date)
         result = {
             'was_updated': was_updated_counter_base + was_updated_counter_rel,

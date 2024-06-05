@@ -26,22 +26,22 @@ class CurrencyParserBase(ABC):
 class RateParser(CurrencyParserBase):
     def __init__(self):
         self.url_template = "https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur={cur}&bd={start_day}&bm={start_month}&by={start_year}&ed={end_day}&em={end_month}&ey={end_year}&x=48&y=13#archive"
-        self._get_url_codes()
+        # self._get_url_codes()
 
-    def _get_url_codes(self):
-        # self.currency_codes = {}
-        # url = 'https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52148'
-        # soup = self._get_soup(url)
-        # select = soup.find('select', {'class': 'fs11'})
-        # if select:
-        #     options = select.find_all('option')
-        #     for option in options:
-        #         value = option.get('value')
-        #         text = option.text
-        #         self.currency_codes[text] = value
-        #     print(options)
+        # def _get_url_codes(self):
+        #     self.currency_codes = {}
+        #     url = 'https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52148'
+        #     soup = self._get_soup(url, encoding='cp1251')
+        #     select = soup.find('select', {'class': 'fs11'})
+        #     if select:
+        #         options = select.find_all('option')
+        #         for option in options:
+        #             value = option.get('value')
+        #             text = option.text
+        #             self.currency_codes[text] = value
+        #         print(options)
 
-        self.currency_codes = {
+        self.currency_codes_urls = {
             'USD': 52148,  # доллар
             'EUR': 52170,  # евро
             'GBP': 52146,  # фунт стерлигов
@@ -51,15 +51,15 @@ class RateParser(CurrencyParserBase):
             'CNY': 52207,  # китайский юань
         }
 
-    def parse(self, start_date: date, end_date: date) -> List[CurrencyRateUpdate]:
+    def parse(self, start_date: date, end_date: date, currency_codes: List[str]) -> List[CurrencyRateUpdate]:
         rates = []
 
-        self._get_url_codes()
-
-        for curr_name, curr_code in self.currency_codes.items():
+        # for curr_code, curr_code_url in self.currency_codes.items():
+        for curr_code in currency_codes:
+            curr_code_url = self.currency_codes_urls[curr_code]
 
             url = self.url_template.format(
-                cur=curr_code,
+                cur=curr_code_url,
                 start_day=start_date.day, start_month=start_date.month, start_year=start_date.year,
                 end_day=end_date.day, end_month=end_date.month, end_year=end_date.year
             )
@@ -76,12 +76,11 @@ class RateParser(CurrencyParserBase):
                         try:
                             rate_value = float(rate_text.replace(',', '.'))
                             rate_date = datetime.strptime(date_text, "%d.%m.%Y")
-                            rate = CurrencyRateUpdate(currency_code=curr_name, date=rate_date, rate=rate_value)
+                            rate = CurrencyRateUpdate(currency_code=curr_code, date=rate_date, rate=rate_value)
                             rates.append(rate)
                         except ValueError as ex:
                             print(f"Error parsing row {row}: {ex}")
         return rates
-
 
 
 class CountryCurrencyParser(CurrencyParserBase):

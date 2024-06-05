@@ -27,18 +27,20 @@ class CurrencyAPI:
             self,
             start_date: date,
             end_date: date,
+            currency_codes: List[str],
             db: Session = Depends(get_db)
     ):
-        result = self.currency_controller.sync_and_get_currency_rates(db, start_date, end_date)
+        result = self.currency_controller.sync_and_get_currency_rates(db, start_date, end_date, currency_codes)
         return result
 
     def sync_and_get_currency_related_rates_endpoint(
             self,
             start_date: date,
             end_date: date,
+            currency_codes: List[str],
             db: Session = Depends(get_db)
     ):
-        result = self.currency_controller.sync_and_get_currency_related_rates(db, start_date, end_date)
+        result = self.currency_controller.sync_and_get_currency_related_rates(db, start_date, end_date, currency_codes)
         return result
 
     def sync_and_get_country_currency_rates_endpoint(
