@@ -35,7 +35,7 @@ class RelatedCurrencyRateModel(Base):
     )
 
 
-class Parameters(Base):
+class ParametersModel(Base):
     __tablename__ = "parameters"
 
     currency_code = Column(String, primary_key=True, index=True)

@@ -9,7 +9,7 @@ from sqlalchemy import select
 from models import (
     CurrencyRateModel,
     RelatedCurrencyRateModel,
-    Parameters,
+    ParametersModel,
     CountryModel
 )
 from schemas import (
@@ -78,7 +78,7 @@ class CurrencyController:
 
         for related_rate in related_rates_to_sync:
             currency_code = related_rate.currency_code
-            param: Parameters = db.query(Parameters).get(currency_code)
+            param: ParametersModel = db.query(ParametersModel).get(currency_code)
             if param:
                 related_rate_value = related_rate.rate / param.base_rate
                 query = select(RelatedCurrencyRateModel).where(
@@ -123,7 +123,7 @@ class CurrencyController:
             result = db.execute(query)
             currency: CurrencyRateModel = result.scalar_one_or_none()
 
-            param: Parameters = db.query(Parameters).get(currency_code)
+            param: ParametersModel = db.query(ParametersModel).get(currency_code)
             if param:
                 new_parameter = ParameterUpdate(
                     base_rate=currency.rate,
@@ -131,20 +131,20 @@ class CurrencyController:
                 )
                 update_object(
                     db=db,
-                    model=Parameters,
+                    model=ParametersModel,
                     obj_id=currency_code,
                     schema=new_parameter
                 )
                 was_updated_counter += 1
             else:
-                new_parameter = Parameters(
+                new_parameter = ParametersModel(
                     currency_code=currency_code,
                     base_rate=currency.rate,
                     date_of_base_rate=base_date,
                 )
                 create_object(
                     db=db,
-                    model=Parameters,
+                    model=ParametersModel,
                     schema=new_parameter
                 )
                 was_created_counter += 1
