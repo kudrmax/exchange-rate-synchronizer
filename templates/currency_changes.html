@@ -86,7 +86,9 @@
                         plotResultDiv.empty();
 
                         if (response.plot_link) {
-                            let img = `<img src="/static/${response.plot_link}" class="img-fluid" alt="График изменений курсов валют">`;
+                            // Добавление уникального параметра к URL изображения для предотвращения кеширования
+                            let timestamp = new Date().getTime();
+                            let img = `<img src="/static/${response.plot_link}?t=${timestamp}" class="img-fluid" alt="График изменений курсов валют">`;
                             plotResultDiv.append(img);
                         } else {
                             plotResultDiv.append('<p>Нет данных для отображения</p>');
