@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from base_controller import BaseController
 from models import CurrencyRateModel, RelatedCurrencyRateModel, ParametersModel
-from parser import RateParser
+from parsers import RateParser
 from schemas import CurrencyRateUpdate, CurrencyRelatedRateUpdate, CurrencyRelatedRateCreate, ParameterUpdate
 
 
