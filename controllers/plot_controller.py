@@ -3,8 +3,10 @@ from datetime import date
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from .base_controller import BaseController
 
-class PlotController:
+
+class PlotController(BaseController):
     @staticmethod
     def draw_plot(related_rates, start_date: date, end_date: date, country_to_currency_code):
         currency_data = {}

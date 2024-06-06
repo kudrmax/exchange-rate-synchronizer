@@ -4,10 +4,10 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from base_controller import BaseController
+from .base_controller import BaseController
 from models import CurrencyRateModel, RelatedCurrencyRateModel, ParametersModel
 from parsers import RateParser
-from schemas import CurrencyRateUpdate, CurrencyRelatedRateUpdate, CurrencyRelatedRateCreate, ParameterUpdate
+from schemas import CurrencyRateUpdate, CurrencyRelatedRateUpdate, CurrencyRelatedRateCreate, ParameterUpdate, Parameter
 
 
 class CurrencyController(BaseController):
@@ -24,10 +24,11 @@ class CurrencyController(BaseController):
         ).all()
 
     @staticmethod
-    def get_related_currency_rates(db: Session, start_date: date, end_date: date):
+    def get_related_currency_rates(db: Session, start_date: date, end_date: date, currency_codes: List[str]):
         return db.query(RelatedCurrencyRateModel).filter(
             RelatedCurrencyRateModel.date >= start_date,
-            RelatedCurrencyRateModel.date <= end_date
+            RelatedCurrencyRateModel.date <= end_date,
+            RelatedCurrencyRateModel.currency_code.in_(currency_codes)
         ).all()
 
     def sync_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
@@ -105,7 +106,7 @@ class CurrencyController(BaseController):
         was_updated_counter = 0
 
         base_date = date(2020, 1, 1)
-        self.sync_currency_rates(db, start_date, end_date, currency_codes)
+        self.sync_currency_rates(db, base_date, base_date, currency_codes)
 
         for currency_code in currency_codes:
             query = select(CurrencyRateModel).where(CurrencyRateModel.date == base_date).where(
@@ -128,7 +129,7 @@ class CurrencyController(BaseController):
                     )
                     was_updated_counter += 1
             else:
-                new_parameter = ParametersModel(
+                new_parameter = Parameter(
                     currency_code=currency_code,
                     base_rate=currency.rate,
                     date_of_base_rate=base_date,
@@ -157,7 +158,7 @@ class CurrencyController(BaseController):
                                                                                            currency_codes)
         was_updated_counter_rel, was_created_counter_rel = self.sync_related_currency_rates(db, start_date, end_date,
                                                                                             currency_codes)
-        currency_rates = self.get_related_currency_rates(db, start_date, end_date)
+        currency_rates = self.get_related_currency_rates(db, start_date, end_date, currency_codes)
         result = {
             'was_updated': was_updated_counter_base + was_updated_counter_rel,
             'was_created': was_created_counter_base + was_created_counter_rel,

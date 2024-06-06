@@ -2,7 +2,7 @@ from typing import List
 
 from sqlalchemy.orm import Session
 
-from base_controller import BaseController
+from .base_controller import BaseController
 from models import CountryModel
 from parsers import CountryCurrencyParser
 from schemas import CountryUpdate
