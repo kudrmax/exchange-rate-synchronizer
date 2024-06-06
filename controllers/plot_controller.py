@@ -32,7 +32,7 @@ class PlotController(BaseController):
         plt.xlabel('Дата', fontsize=12)
         plt.ylabel('Относительное изменение курсов валют', fontsize=12)
         plt.grid(alpha=0.4)
-        plt.legend(title='Валюты', fontsize=10, title_fontsize=12)
+        plt.legend(title='Валюты', fontsize=10, title_fontsize=12, loc='lower right')
         plt.tight_layout()
         plot_link = f'{start_date}-{end_date}-{"-".join(currency_data.keys())}.png'
         plt.savefig('plots/' + plot_link)
