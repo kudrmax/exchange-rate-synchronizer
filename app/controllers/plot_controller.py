@@ -35,6 +35,6 @@ class PlotController(BaseController):
         plt.legend(title='Валюты', fontsize=10, title_fontsize=12, loc='lower right')
         plt.tight_layout()
         plot_link = f'{start_date}-{end_date}-{"-".join(currency_data.keys())}.png'
-        plt.savefig('plots/' + plot_link)
+        plt.savefig('static/plots/' + plot_link)
         plt.close()
         return plot_link
