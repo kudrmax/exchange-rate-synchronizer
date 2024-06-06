@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel
 from datetime import date as date_t
 
@@ -91,3 +93,9 @@ class Parameter(BaseModel):
 class ParameterUpdate(BaseModel):
     base_rate: float | None = None
     date_of_base_rate: date_t | None = None
+
+
+class CurrencyRatesRequest(BaseModel):
+    start_date: date_t
+    end_date: date_t
+    currency_codes: List[str]

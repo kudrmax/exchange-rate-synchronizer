@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Курсы валют</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Курсы валют</h1>
+            <a href="/" class="btn btn-secondary">На главную страницу</a>
+        </div>
+        <form id="currency-form">
+            <div class="form-group">
+                <label for="start_date">Дата начала:</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="2021-01-01" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">Дата конца:</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="2021-03-01" required>
+            </div>
+            <div class="form-group">
+                <label for="currency_codes">Выберите валюты:</label>
+                <div id="currency_codes" class="btn-group btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
+                    <label class="btn btn-secondary m-1">
+                        <input type="checkbox" name="currency_codes" value="USD"> USD
+                    </label>
+                    <label class="btn btn-secondary m-1">
+                        <input type="checkbox" name="currency_codes" value="EUR"> EUR
+                    </label>
+                    <label class="btn btn-secondary m-1">
+                        <input type="checkbox" name="currency_codes" value="GBP"> GBP
+                    </label>
+                    <label class="btn btn-secondary m-1">
+                        <input type="checkbox" name="currency_codes" value="JPY"> JPY
+                    </label>
+                    <label class="btn btn-secondary m-1">
+                        <input type="checkbox" name="currency_codes" value="TRY"> TRY
+                    </label>
+                    <label class="btn btn-secondary m-1">
+                        <input type="checkbox" name="currency_codes" value="INR"> INR
+                    </label>
+                    <label class="btn btn-secondary m-1">
+                        <input type="checkbox" name="currency_codes" value="CNY"> CNY
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Получить курсы валют</button>
+        </form>
+        <div id="results" class="mt-5">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+    <script>
+        $(document).ready(function(){
+            $('.btn-group-toggle .btn').on('click', function(){
+                $(this).toggleClass('btn-info active');
+                $(this).toggleClass('btn-secondary');
+            });
+
+            $('#currency-form').on('submit', function(event){
+                event.preventDefault();
+
+                let start_date = $('#start_date').val();
+                let end_date = $('#end_date').val();
+                let currency_codes = [];
+                $('#currency_codes input:checked').each(function(){
+                    currency_codes.push($(this).val());
+                });
+
+                $.ajax({
+                    url: '/sync-and-get-currency-rates/',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        start_date: start_date,
+                        end_date: end_date,
+                        currency_codes: currency_codes
+                    }),
+                    success: function(response){
+                        let rates = response.data;
+                        let resultsDiv = $('#results');
+                        resultsDiv.empty();
+
+                        if (rates.length > 0) {
+                            let table = `
+                                <h2 class="mt-5">Результаты:</h2>
+                                <table class="table table-bordered mt-3">
+                                    <thead>
+                                        <tr>
+                                            <th>Валюта</th>
+                                            <th>Дата</th>
+                                            <th>Курс</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+
+                            rates.forEach(rate => {
+                                table += `
+                                    <tr>
+                                        <td>${rate.currency_code}</td>
+                                        <td>${rate.date}</td>
+                                        <td>${rate.rate}</td>
+                                    </tr>
+                                `;
+                            });
+
+                            table += `
+                                    </tbody>
+                                </table>
+                            `;
+                            resultsDiv.append(table);
+                        } else {
+                            resultsDiv.append('<p>Нет данных для отображения</p>');
+                        }
+                    },
+                    error: function(error){
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

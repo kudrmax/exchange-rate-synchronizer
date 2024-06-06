@@ -1,12 +1,17 @@
-from fastapi import FastAPI, Depends, Body
+from fastapi import FastAPI, Depends, Body, Request, Query
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from datetime import date
 from database import get_db
 from controllers import CurrencyController, CountryController, PlotController
-from typing import List
+from typing import List, Optional
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from models import CountryModel, RelatedCurrencyRateModel
+
+from schemas import CurrencyRatesRequest
 
 
 class CurrencyAPI:
@@ -16,24 +21,50 @@ class CurrencyAPI:
         self.country_controller = CountryController()
         self.plot_controller = PlotController()
         self.setup_routes()
+        self.templates = Jinja2Templates(directory="templates")
 
     def setup_routes(self):
+        self.app.get("/", response_class=HTMLResponse)(self.read_root)
+        self.app.get("/currency-rates", response_class=HTMLResponse)(self.read_currency_rates)
+        self.app.get("/country-currencies", response_class=HTMLResponse)(self.read_country_currencies)
+
+
         self.app.post("/sync-and-get-currency-rates/")(self.sync_and_get_currency_rates_endpoint)
         self.app.post("/sync-and-get-currency-related-rates/")(self.sync_and_get_currency_related_rates_endpoint)
         self.app.post("/sync-and-get-countries/")(self.sync_and_get_country_currency_rates_endpoint)
         self.app.post("/draw_plot/")(self.draw_plot)
 
+    def read_root(self, request: Request):
+        return self.templates.TemplateResponse("index.html", {"request": request})
+
+    def read_currency_rates(self, request: Request):
+        return self.templates.TemplateResponse("currency_rates.html", {"request": request})
+
+    def read_country_currencies(self, request: Request):
+        return self.templates.TemplateResponse("country_currencies.html", {"request": request})
+
+    # def sync_and_get_currency_rates_endpoint(
+    #         self,
+    #         # start_date: date = date(2020, 1, 1),
+    #         # end_date: date = date(2020, 1, 30),
+    #         # currency_codes: List[str] = Body(default=None, example=['USD', 'EUR', 'GBP', 'JPY', 'TRY', 'INR', 'CNY']),
+    #         start_date: date = Query(date(2020, 1, 1)),
+    #         end_date: date = Query(date(2020, 1, 30)),
+    #         currency_codes: Optional[List[str]] = Query(None),
+    #         db: Session = Depends(get_db),
+    # ):
+    #     if currency_codes is None:
+    #         currency_codes = self.currency_controller.currency_codes
+    #     result = self.currency_controller.sync_and_get_currency_rates(db, start_date, end_date, currency_codes)
+    #     return result
+
     def sync_and_get_currency_rates_endpoint(
             self,
-            start_date: date = date(2020, 1, 1),
-            end_date: date = date(2020, 1, 30),
-            currency_codes: List[str] = Body(default=None, example=['USD', 'EUR', 'GBP', 'JPY', 'TRY', 'INR', 'CNY']),
+            request: CurrencyRatesRequest,
             db: Session = Depends(get_db),
     ):
-        if currency_codes is None:
-            currency_codes = self.currency_controller.currency_codes
-        print(self.currency_controller.currency_codes)
-        result = self.currency_controller.sync_and_get_currency_rates(db, start_date, end_date, currency_codes)
+        result = self.currency_controller.sync_and_get_currency_rates(
+            db, request.start_date, request.end_date, request.currency_codes)
         return result
 
     def sync_and_get_currency_related_rates_endpoint(
