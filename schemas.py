@@ -99,3 +99,9 @@ class CurrencyRatesRequest(BaseModel):
     start_date: date_t
     end_date: date_t
     currency_codes: List[str]
+
+
+class PlotRequest(BaseModel):
+    start_date: date_t
+    end_date: date_t
+    countries: List[str]

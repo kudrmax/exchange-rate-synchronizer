@@ -34,7 +34,7 @@ class PlotController(BaseController):
         plt.grid(alpha=0.4)
         plt.legend(title='Валюты', fontsize=10, title_fontsize=12)
         plt.tight_layout()
-        plot_link = f'plots/{start_date}-{end_date}-{"-".join(currency_data.keys())}.png'
-        plt.savefig(plot_link)
+        plot_link = f'{start_date}-{end_date}-{"-".join(currency_data.keys())}.png'
+        plt.savefig('plots/' + plot_link)
         plt.close()
         return plot_link
