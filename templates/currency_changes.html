@@ -8,98 +8,266 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Изменения курсов валют</h1>
-            <a href="/" class="btn btn-secondary">На главную страницу</a>
-        </div>
-        <form id="currency-changes-form">
-            <div class="form-group">
-                <label for="start_date">Дата начала:</label>
-                <input type="date" class="form-control" id="start_date" name="start_date" value="2021-01-01" required>
-            </div>
-            <div class="form-group">
-                <label for="end_date">Дата конца:</label>
-                <input type="date" class="form-control" id="end_date" name="end_date" value="2021-03-01" required>
-            </div>
-            <div class="form-group">
-                <label for="countries">Выберите страны:</label>
-                <div id="countries" class="btn-group btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
-                    <label class="btn btn-secondary m-1">
-                        <input type="checkbox" name="countries" value="Китай"> Китай
-                    </label>
-                    <label class="btn btn-secondary m-1">
-                        <input type="checkbox" name="countries" value="Аландские острова"> Аландские острова
-                    </label>
-                    <label class="btn btn-secondary m-1">
-                        <input type="checkbox" name="countries" value="Андорра"> Андорра
-                    </label>
-                    <label class="btn btn-secondary m-1">
-                        <input type="checkbox" name="countries" value="Австрия"> Австрия
-                    </label>
-                    <label class="btn btn-secondary m-1">
-                        <input type="checkbox" name="countries" value="Бельгия"> Бельгия
-                    </label>
-                    <label class="btn btn-secondary m-1">
-                        <input type="checkbox" name="countries" value="Кипр"> Кипр
-                    </label>
-                    <label class="btn btn-secondary m-1">
-                        <input type="checkbox" name="countries" value="Эстония"> Эстония
-                    </label>
-                    <!-- Добавьте остальные страны здесь -->
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Построить график изменений курсов валют</button>
-        </form>
-        <div id="plot-result" class="mt-5">
-            <!-- Plot image will be displayed here -->
-        </div>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Изменения курсов валют</h1>
+        <a href="/" class="btn btn-secondary">На главную страницу</a>
     </div>
-    <script>
-        $(document).ready(function(){
-            $('.btn-group-toggle .btn').on('click', function(){
-                $(this).toggleClass('btn-info active');
-                $(this).toggleClass('btn-secondary');
+    <form id="currency-changes-form">
+        <div class="form-group">
+            <label for="start_date">Дата начала:</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" value="2021-01-01" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">Дата конца:</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" value="2021-03-01" required>
+        </div>
+        <div class="form-group">
+            <label for="countries">Выберите страны:</label>
+            <div id="countries" class="btn-group btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Китай"> Китай
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Аландские острова"> Аландские острова
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Андорра"> Андорра
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Австрия"> Австрия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Бельгия"> Бельгия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Кипр"> Кипр
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Эстония"> Эстония
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Европейский Союх"> Европейский Союх
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Финляндия"> Финляндия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Франция"> Франция
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Гвиана"> Гвиана
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Французские Южные и Антарктические территории">
+                    Французские Южные и Антарктические территории
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Германия"> Германия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Греция"> Греция
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Гваделупа"> Гваделупа
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Ватикан"> Ватикан
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Ирландия"> Ирландия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Италия"> Италия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Латвия"> Латвия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Литва"> Литва
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Люксембург"> Люксембург
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Мальта"> Мальта
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Мартиника"> Мартиника
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Майотта"> Майотта
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Монако"> Монако
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Черногория"> Черногория
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Голландия"> Голландия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Португалия"> Португалия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Реуньон"> Реуньон
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Сен-Бартелеми"> Сен-Бартелеми
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Сен-Мартин"> Сен-Мартин
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Сен-Пьер и Микелон"> Сен-Пьер и Микелон
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Сан-Марино"> Сан-Марино
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Словакия"> Словакия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Словения"> Словения
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Испания"> Испания
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Гернси"> Гернси
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Остров Мен"> Остров Мен
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Джерси"> Джерси
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Великобритания"> Великобритания
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Бутан"> Бутан
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Индия"> Индия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Япония"> Япония
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Турция"> Турция
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Американское Самоа"> Американское Самоа
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Бонэйр"> Бонэйр
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Британские территории в Индийском Океане"> Британские
+                    территории в Индийском Океане
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Эквадор"> Эквадор
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Сальвадор"> Сальвадор
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Гуам"> Гуам
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Гаити"> Гаити
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Маршалловы острова"> Маршалловы острова
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Микронезия"> Микронезия
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Северные Марианские острова"> Северные Марианские
+                    острова
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Палау"> Палау
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Панама"> Панама
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Пуэрто-Рико"> Пуэрто-Рико
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Западный Тимор"> Западный Тимор
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Тёркс и Кайкос"> Тёркс и Кайкос
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Острова США"> Острова США
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Британские Виргинские Острова"> Британские Виргинские
+                    Острова
+                </label>
+                <label class="btn btn-secondary m-1">
+                    <input type="checkbox" name="countries" value="Виргинские Острова"> Виргинские Острова
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Построить график изменений курсов валют</button>
+    </form>
+    <div id="plot-result" class="mt-5">
+        <!-- Plot image will be displayed here -->
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('.btn-group-toggle .btn').on('click', function () {
+            $(this).toggleClass('btn-info active');
+            $(this).toggleClass('btn-secondary');
+        });
+
+        $('#currency-changes-form').on('submit', function (event) {
+            event.preventDefault();
+
+            let start_date = $('#start_date').val();
+            let end_date = $('#end_date').val();
+            let countries = [];
+            $('#countries input:checked').each(function () {
+                countries.push($(this).val());
             });
 
-            $('#currency-changes-form').on('submit', function(event){
-                event.preventDefault();
+            $.ajax({
+                url: '/draw_plot/',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    start_date: start_date,
+                    end_date: end_date,
+                    countries: countries
+                }),
+                success: function (response) {
+                    let plotResultDiv = $('#plot-result');
+                    plotResultDiv.empty();
 
-                let start_date = $('#start_date').val();
-                let end_date = $('#end_date').val();
-                let countries = [];
-                $('#countries input:checked').each(function(){
-                    countries.push($(this).val());
-                });
-
-                $.ajax({
-                    url: '/draw_plot/',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        start_date: start_date,
-                        end_date: end_date,
-                        countries: countries
-                    }),
-                    success: function(response){
-                        let plotResultDiv = $('#plot-result');
-                        plotResultDiv.empty();
-
-                        if (response.plot_link) {
-                            // Добавление уникального параметра к URL изображения для предотвращения кеширования
-                            let timestamp = new Date().getTime();
-                            let img = `<img src="/static/${response.plot_link}?t=${timestamp}" class="img-fluid" alt="График изменений курсов валют">`;
-                            plotResultDiv.append(img);
-                        } else {
-                            plotResultDiv.append('<p>Нет данных для отображения</p>');
-                        }
-                    },
-                    error: function(error){
-                        console.error('Error:', error);
+                    if (response.plot_link) {
+                        // Добавление уникального параметра к URL изображения для предотвращения кеширования
+                        let timestamp = new Date().getTime();
+                        let img = `<img src="/static/${response.plot_link}?t=${timestamp}" class="img-fluid" alt="График изменений курсов валют">`;
+                        plotResultDiv.append(img);
+                    } else {
+                        plotResultDiv.append('<p>Нет данных для отображения</p>');
                     }
-                });
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
             });
         });
-    </script>
+    });
+</script>
 </body>
 </html>
