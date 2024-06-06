@@ -129,6 +129,9 @@ class CurrencyAPI:
         countries = request.countries
         start_date = request.start_date
         end_date = request.end_date
+
+        self.country_controller.sync_and_get_countries(db)
+
         country_to_currency_code = {}
         for country in countries:
             country_model = db.query(CountryModel).get(country)
