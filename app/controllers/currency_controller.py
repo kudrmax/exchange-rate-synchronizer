@@ -5,9 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .base_controller import BaseController
-from models import CurrencyRateModel, RelatedCurrencyRateModel, ParametersModel
-from parsers import RateParser
-from schemas import CurrencyRateUpdate, CurrencyRelatedRateUpdate, CurrencyRelatedRateCreate, ParameterUpdate, Parameter
+from app.models import CurrencyRateModel, RelatedCurrencyRateModel, ParametersModel
+from app.parsers import RateParser
+# from ..schemas import CurrencyRateUpdate, CurrencyRelatedRateUpdate, CurrencyRelatedRateCreate, ParameterUpdate, Parameter
+from app.schemas import CurrencyRateSchema, CurrencyRelatedRateSchema, ParameterUpdateSchema, ParameterSchema, \
+    CurrencyRelatedRateUpdateSchema
 
 
 class CurrencyController(BaseController):
@@ -32,7 +34,7 @@ class CurrencyController(BaseController):
         ).all()
 
     def sync_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
-        rates_to_sync: List[CurrencyRateUpdate] = self.parser.parse(start_date, end_date, currency_codes)
+        rates_to_sync = self.parser.parse(start_date, end_date, currency_codes)
 
         was_updated_counter = 0
         was_created_counter = 0
@@ -83,7 +85,7 @@ class CurrencyController(BaseController):
                             db=db,
                             model=RelatedCurrencyRateModel,
                             obj_id=(currency_code, related_rate.date),
-                            schema=CurrencyRelatedRateUpdate(
+                            schema=CurrencyRelatedRateUpdateSchema(
                                 related_rate=related_rate_value
                             )
                         )
@@ -92,7 +94,7 @@ class CurrencyController(BaseController):
                     self.create_object(
                         db=db,
                         model=RelatedCurrencyRateModel,
-                        schema=CurrencyRelatedRateCreate(
+                        schema=CurrencyRelatedRateSchema(
                             currency_code=currency_code,
                             date=related_rate.date,
                             related_rate=related_rate_value
@@ -117,7 +119,7 @@ class CurrencyController(BaseController):
             param: ParametersModel = db.query(ParametersModel).get(currency_code)
             if param:
                 if param.base_rate != currency.rate:
-                    new_parameter = ParameterUpdate(
+                    new_parameter = ParameterUpdateSchema(
                         base_rate=currency.rate,
                         date_of_base_rate=base_date,
                     )
@@ -129,7 +131,7 @@ class CurrencyController(BaseController):
                     )
                     was_updated_counter += 1
             else:
-                new_parameter = Parameter(
+                new_parameter = ParameterSchema(
                     currency_code=currency_code,
                     base_rate=currency.rate,
                     date_of_base_rate=base_date,

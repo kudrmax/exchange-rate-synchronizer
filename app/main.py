@@ -1,14 +1,13 @@
-from fastapi.staticfiles import StaticFiles
-from database import engine
-from models import Base
-from api import CurrencyAPI
-
 import uvicorn
+from fastapi.staticfiles import StaticFiles
+
+from database import engine
+from app.models import Base
+from api import CurrencyAPI
 
 Base.metadata.create_all(bind=engine)
 
 api = CurrencyAPI()
-
 api.app.mount("/static", StaticFiles(directory="static/plots"), name="static")
 
 if __name__ == "__main__":

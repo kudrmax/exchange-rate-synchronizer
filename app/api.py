@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Depends, Body, Request, Query
-from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from datetime import date
@@ -9,9 +8,9 @@ from typing import List, Optional
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from models import CountryModel, RelatedCurrencyRateModel
+from app.models import CountryModel, RelatedCurrencyRateModel
 
-from schemas import CurrencyRatesRequest, PlotRequest
+from schemas import CurrencyRatesRequestSchema, PlotRequestSchema
 
 
 class CurrencyAPI:
@@ -65,7 +64,7 @@ class CurrencyAPI:
 
     def sync_and_get_currency_rates_endpoint(
             self,
-            request: CurrencyRatesRequest,
+            request: CurrencyRatesRequestSchema,
             db: Session = Depends(get_db),
     ):
         result = self.currency_controller.sync_and_get_currency_rates(
@@ -123,7 +122,7 @@ class CurrencyAPI:
 
     def draw_plot(
             self,
-            request: PlotRequest,
+            request: PlotRequestSchema,
             db: Session = Depends(get_db),
     ):
         countries = request.countries

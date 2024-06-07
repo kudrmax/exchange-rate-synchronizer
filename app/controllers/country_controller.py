@@ -3,9 +3,9 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from .base_controller import BaseController
-from models import CountryModel
-from parsers import CountryCurrencyParser
-from schemas import CountryUpdate
+from app.models import CountryModel
+from app.parsers import CountryCurrencyParser
+from app.schemas import CountrySchema
 
 
 class CountryController(BaseController):
@@ -16,7 +16,7 @@ class CountryController(BaseController):
     def get_countries(db: Session):
         return db.query(CountryModel).all()
 
-    def sync_counties(self, db: Session, countries_to_sync: List[CountryUpdate]):
+    def sync_counties(self, db: Session, countries_to_sync: List[CountrySchema]):
         for country_to_sync in countries_to_sync:
             country: CountryModel = db.query(CountryModel).get(country_to_sync.country)
             if country:
