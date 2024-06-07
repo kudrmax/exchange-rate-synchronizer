@@ -2,7 +2,7 @@ import uvicorn
 from fastapi.staticfiles import StaticFiles
 
 from database import engine
-from app.models import Base
+from models import Base
 from api import CurrencyAPI
 
 Base.metadata.create_all(bind=engine)
