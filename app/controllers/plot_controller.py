@@ -7,8 +7,13 @@ from .base_controller import BaseController
 
 
 class PlotController(BaseController):
-    @staticmethod
-    def draw_plot(related_rates, start_date: date, end_date: date, country_to_currency_code):
+    def __init__(self):
+        self.plot_dir = 'app/static/plots/'
+
+    def draw_plot(self, related_rates, start_date: date, end_date: date, country_to_currency_code):
+        """
+        Построение графика изменения курсов валют за заданный период времени.
+        """
         currency_data = {}
         for related_rate in related_rates:
             if related_rate.currency_code not in currency_data:
@@ -35,6 +40,6 @@ class PlotController(BaseController):
         plt.legend(title='Валюты', fontsize=10, title_fontsize=12, loc='lower right')
         plt.tight_layout()
         plot_link = f'{start_date}-{end_date}-{"-".join(currency_data.keys())}.png'
-        plt.savefig('static/plots/' + plot_link)
+        plt.savefig(self.plot_dir + plot_link)
         plt.close()
         return plot_link

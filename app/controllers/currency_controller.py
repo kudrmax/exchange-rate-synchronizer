@@ -14,9 +14,13 @@ class CurrencyController(BaseController):
     def __init__(self):
         self.parser = RateParser()
         self.currency_codes = self.parser.currency_codes_urls.keys()
+        self.base_date = date(2020, 1, 1)
 
     @staticmethod
     def get_currency_rates(db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        """
+        Получение курсов валют за указанный период времени.
+        """
         return db.query(CurrencyRateModel).filter(
             CurrencyRateModel.date >= start_date,
             CurrencyRateModel.date <= end_date,
@@ -25,6 +29,9 @@ class CurrencyController(BaseController):
 
     @staticmethod
     def get_related_currency_rates(db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        """
+        Получение относительных изменений курсов валют за указанный период времени.
+        """
         return db.query(RelatedCurrencyRateModel).filter(
             RelatedCurrencyRateModel.date >= start_date,
             RelatedCurrencyRateModel.date <= end_date,
@@ -32,6 +39,20 @@ class CurrencyController(BaseController):
         ).all()
 
     def sync_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        """
+        Метод для синхронизации курсов валют.
+
+        Parameters
+        ----------
+        db : Session
+            Сессия базы данных.
+        start_date : date
+            Начальная дата периода.
+        end_date : date
+            Конечная дата периода.
+        currency_codes : List[str]
+            Список кодов валют.
+        """
         rates_to_sync = self.parser.parse(start_date, end_date, currency_codes)
 
         was_updated_counter = 0
@@ -61,6 +82,20 @@ class CurrencyController(BaseController):
         return was_updated_counter, was_created_counter
 
     def sync_related_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        """
+        Метод для синхронизации относительных изменений курсов валют.
+
+        Parameters
+        ----------
+        db : Session
+            Сессия базы данных.
+        start_date : date
+            Начальная дата периода.
+        end_date : date
+            Конечная дата периода.
+        currency_codes : List[str]
+            Список кодов валют.
+        """
         was_updated_counter, was_created_counter = 0, 0
 
         self.sync_currency_rates(db, start_date, end_date, currency_codes)
@@ -102,14 +137,17 @@ class CurrencyController(BaseController):
         return was_updated_counter, was_created_counter
 
     def sync_base_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        """
+        Метод для синхронизации "базовых" значений курсов валют.
+        За "базовое" значение принимается значение курса валюты на момент 2020-01-01 (self.base_date).
+        """
         was_created_counter = 0
         was_updated_counter = 0
 
-        base_date = date(2020, 1, 1)
-        self.sync_currency_rates(db, base_date, base_date, currency_codes)
+        self.sync_currency_rates(db, self.base_date, self.base_date, currency_codes)
 
         for currency_code in currency_codes:
-            query = select(CurrencyRateModel).where(CurrencyRateModel.date == base_date).where(
+            query = select(CurrencyRateModel).where(CurrencyRateModel.date == self.base_date).where(
                 CurrencyRateModel.currency_code == currency_code)
             result = db.execute(query)
             currency: CurrencyRateModel = result.scalar_one_or_none()
@@ -119,7 +157,7 @@ class CurrencyController(BaseController):
                 if param.base_rate != currency.rate:
                     new_parameter = ParameterUpdateSchema(
                         base_rate=currency.rate,
-                        date_of_base_rate=base_date,
+                        date_of_base_rate=self.base_date,
                     )
                     self.update_object(
                         db=db,
@@ -132,7 +170,7 @@ class CurrencyController(BaseController):
                 new_parameter = ParameterSchema(
                     currency_code=currency_code,
                     base_rate=currency.rate,
-                    date_of_base_rate=base_date,
+                    date_of_base_rate=self.base_date,
                 )
                 self.create_object(
                     db=db,
@@ -143,6 +181,9 @@ class CurrencyController(BaseController):
         return was_updated_counter, was_created_counter
 
     def sync_and_get_currency_rates(self, db: Session, start_date: date, end_date: date, currency_codes: List[str]):
+        """
+        Метод для синхронизации и получения курсов валют.
+        """
         was_updated_counter, was_created_counter = self.sync_currency_rates(db, start_date, end_date, currency_codes)
         currency_rates = self.get_currency_rates(db, start_date, end_date, currency_codes)
         result = {
@@ -152,13 +193,34 @@ class CurrencyController(BaseController):
         }
         return result
 
-    def sync_and_get_currency_related_rates(self, db: Session, start_date: date, end_date: date,
-                                            currency_codes: List[str]):
-        was_updated_counter_base, was_created_counter_base = self.sync_base_currency_rates(db, start_date, end_date,
-                                                                                           currency_codes)
-        was_updated_counter_rel, was_created_counter_rel = self.sync_related_currency_rates(db, start_date, end_date,
-                                                                                            currency_codes)
-        currency_rates = self.get_related_currency_rates(db, start_date, end_date, currency_codes)
+    def sync_and_get_currency_related_rates(
+            self,
+            db: Session,
+            start_date: date,
+            end_date: date,
+            currency_codes: List[str]
+    ):
+        """
+        Метод для синхронизации и получения относительных изменений курсов валют.
+        """
+        was_updated_counter_base, was_created_counter_base = self.sync_base_currency_rates(
+            db,
+            start_date,
+            end_date,
+            currency_codes
+        )
+        was_updated_counter_rel, was_created_counter_rel = self.sync_related_currency_rates(
+            db,
+            start_date,
+            end_date,
+            currency_codes
+        )
+        currency_rates = self.get_related_currency_rates(
+            db,
+            start_date,
+            end_date,
+            currency_codes
+        )
         result = {
             'was_updated': was_updated_counter_base + was_updated_counter_rel,
             'was_created': was_created_counter_base + was_created_counter_rel,

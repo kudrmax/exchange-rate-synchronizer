@@ -11,6 +11,24 @@ class CRUDController:
 
     @classmethod
     def create_object(cls, db: Session, model: Type[ModelType], schema: SchemaType) -> ModelType:
+        """
+        Создание нового объекта в базе данных.
+
+        Parameters
+        ----------
+        db : Session
+            Сессия базы данных.
+        model : Type[ModelType]
+            Модель, по которой создается объект.
+        schema : SchemaType
+            Схема данных для создания объекта.
+
+
+        Returns
+        -------
+        ModelType
+            Созданный объект.
+        """
         obj = model(**schema.model_dump())
         db.add(obj)
         try:
@@ -23,6 +41,26 @@ class CRUDController:
 
     @classmethod
     def update_object(cls, db: Session, model: Type[ModelType], obj_id: Any, schema: SchemaType) -> ModelType:
+        """
+        Обновление существующего объекта в базе данных.
+
+        Parameters
+        ----------
+        db : Session
+            Сессия базы данных.
+        model : Type[ModelType]
+            Модель объекта для обновления.
+        obj_id : Any
+            Идентификатор объекта для обновления.
+        schema : SchemaType
+            Схема данных для обновления объекта.
+
+
+        Returns
+        -------
+        ModelType
+            Обновленный объект.
+        """
         obj = db.query(model).get(obj_id)
         if obj:
             obj_data = schema.model_dump(exclude_unset=True)

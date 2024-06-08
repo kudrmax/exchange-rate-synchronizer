@@ -1,9 +1,11 @@
 from typing import List
 from datetime import date, datetime
+from abc import ABC, abstractmethod
+
 import requests
 from bs4 import BeautifulSoup
+
 from schemas import CountrySchema, CurrencyRateSchema
-from abc import ABC, abstractmethod
 
 
 class CurrencyParserBase(ABC):
@@ -153,7 +155,7 @@ class CountryCurrencyParser(CurrencyParserBase):
         return country_currencies
 
 
-if __name__ == '__main__': # для отдельного теста парсинга
+if __name__ == '__main__':  # для отдельного теста парсинга
     start_date = date(2023, 5, 1)
     end_date = date(2023, 6, 1)
 
