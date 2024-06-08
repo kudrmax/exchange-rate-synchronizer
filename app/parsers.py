@@ -1,17 +1,34 @@
 from typing import List
 from datetime import date, datetime
+from abc import ABC, abstractmethod
+
 import requests
 from bs4 import BeautifulSoup
-from schemas import CurrencyRateUpdate, CountryUpdate
-from abc import ABC, abstractmethod
+
+from schemas import CountrySchema, CurrencyRateSchema
 
 
 class CurrencyParserBase(ABC):
     """
-    Абсрактный класс для парсинга, который обязывает наследников реализовывать метод parse
+    Абсрактный класс для парсинга, который обязывает наследников реализовывать метод parse.
     """
 
     def _get_soup(self, url: str, encoding: str | None = None) -> BeautifulSoup:
+        """
+        Парсит HTML-код страницы по указанному URL.
+
+        Parameters
+        ----------
+        url : str
+            URL страницы, которую нужно парсить.
+        encoding : str, optional
+            Кодировка страницы, если она отличается от стандартной.
+
+        Returns
+        -------
+        BeautifulSoup
+            Объект BeautifulSoup для дальнейшего работы со страницей
+        """
         response = requests.get(url)
         if encoding is not None:
             response.encoding = encoding
@@ -20,26 +37,15 @@ class CurrencyParserBase(ABC):
 
     @abstractmethod
     def parse(self, *args, **kwargs):
+        """
+        Абстрактный метод для парсинга, должен быть реализован в дочерних классах.
+        """
         pass
 
 
 class RateParser(CurrencyParserBase):
     def __init__(self):
         self.url_template = "https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur={cur}&bd={start_day}&bm={start_month}&by={start_year}&ed={end_day}&em={end_month}&ey={end_year}&x=48&y=13#archive"
-        # self._get_url_codes()
-
-        # def _get_url_codes(self):
-        #     self.currency_codes = {}
-        #     url = 'https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52148'
-        #     soup = self._get_soup(url, encoding='cp1251')
-        #     select = soup.find('select', {'class': 'fs11'})
-        #     if select:
-        #         options = select.find_all('option')
-        #         for option in options:
-        #             value = option.get('value')
-        #             text = option.text
-        #             self.currency_codes[text] = value
-        #         print(options)
 
         self.currency_codes_urls = {
             'USD': 52148,  # доллар
@@ -51,7 +57,38 @@ class RateParser(CurrencyParserBase):
             'CNY': 52207,  # китайский юань
         }
 
-    def parse(self, start_date: date, end_date: date, currency_codes: List[str]) -> List[CurrencyRateUpdate]:
+    # код для парсинга self.currency_codes_urls автоматически, но он не пригодился
+    # def _get_url_codes(self):
+    #     self.currency_codes = {}
+    #     url = 'https://www.finmarket.ru/currency/rates/?id=10148&pv=1&cur=52148'
+    #     soup = self._get_soup(url, encoding='cp1251')
+    #     select = soup.find('select', {'class': 'fs11'})
+    #     if select:
+    #         options = select.find_all('option')
+    #         for option in options:
+    #             value = option.get('value')
+    #             text = option.text
+    #             self.currency_codes[text] = value
+    #         print(options)
+
+    def parse(self, start_date: date, end_date: date, currency_codes: List[str]) -> List[CurrencyRateSchema]:
+        """
+        Парсит курсы валют за указанный диапазон дат для заданных валют.
+
+        Parameters
+        ----------
+        start_date : date
+            Начальная дата периода для парсинга.
+        end_date : date
+            Конечная дата периода для парсинга.
+        currency_codes : List[str]
+            Список кодов валют для парсинга, например ['USD', 'EUR', ...]
+
+        Returns
+        -------
+        List[CurrencyRateSchema]
+            Список объектов CurrencyRate с данными о курсах валют.
+        """
         rates = []
 
         # for curr_code, curr_code_url in self.currency_codes.items():
@@ -76,7 +113,7 @@ class RateParser(CurrencyParserBase):
                         try:
                             rate_value = float(rate_text.replace(',', '.'))
                             rate_date = datetime.strptime(date_text, "%d.%m.%Y")
-                            rate = CurrencyRateUpdate(currency_code=curr_code, date=rate_date, rate=rate_value)
+                            rate = CurrencyRateSchema(currency_code=curr_code, date=rate_date, rate=rate_value)
                             rates.append(rate)
                         except ValueError as ex:
                             print(f"Error parsing row {row}: {ex}")
@@ -87,7 +124,15 @@ class CountryCurrencyParser(CurrencyParserBase):
     def __init__(self):
         self.url = "https://www.iban.ru/currency-codes"
 
-    def parse(self) -> List[CountryUpdate]:
+    def parse(self) -> List[CountrySchema]:
+        """
+        Парсит данные о валютах стран.
+
+        Returns
+        -------
+        List[CountrySchema]
+            Список объектов CountrySchema с данными о валютах стран.
+        """
         country_currencies = []
 
         soup = self._get_soup(self.url)
@@ -101,7 +146,7 @@ class CountryCurrencyParser(CurrencyParserBase):
                     currency_name = columns[1].text.strip()
                     currency_code = columns[2].text.strip()
                     currency_code = currency_code if currency_code != '' else None
-                    country_currency = CountryUpdate(
+                    country_currency = CountrySchema(
                         country=country,
                         currency_name=currency_name,
                         currency_code=currency_code,
@@ -110,7 +155,7 @@ class CountryCurrencyParser(CurrencyParserBase):
         return country_currencies
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # для отдельного теста парсинга
     start_date = date(2023, 5, 1)
     end_date = date(2023, 6, 1)
 

@@ -126,13 +126,13 @@
 1. Клонируйте репозиторий:
    ```bash
    git clone https://github.com/kudrmax/exchange-rate-synchronizer/
-   cd currency-app
+   cd exchange-rate-synchronizer
    ```
 
 2. Создайте и активируйте виртуальное окружение:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # Для Windows: venv\Scripts\activate
+   source venv/bin/activate  # для Windows: venv\Scripts\activate
    ```
 
 3. Установите зависимости:
@@ -142,45 +142,38 @@
 
 5. Запустите приложение:
    ```bash
-   cd app
-   python main.py
+    python app/main.py  # python3 для UNIX-систем
    ```
 
-6. Откройте браузер и перейдите по адресу [http://127.0.0.1:8000](http://127.0.0.1:8000).
+6. Откройте браузер и перейдите по адресу [http://0.0.0.0:8000](http://0.0.0.0:8000).
 
 ### Установка через Poetry
 
 1. Клонируйте репозиторий:
    ```bash
    git clone https://github.com/kudrmax/exchange-rate-synchronizer/
-   cd currency-app
+   cd exchange-rate-synchronizer
    ```
 
-2. Установите Poetry, если он не установлен:
-   ```bash
-   pip install poetry
-   ```
+2. Установите Poetry, если он не установлен
 
 3. Создайте виртуальное окружение и установите зависимости:
    ```bash
    poetry install
    ```
 
-[//]: # (4. Активируйте виртуальное окружение:)
+4. Активируйте виртуальное окружение:
 
-[//]: # (   ```bash)
-
-[//]: # (   poetry shell)
-
-[//]: # (   ```)
+   ```bash
+   poetry shell
+   ```
 
 6. Запустите приложение:
    ```bash
-   cd app
-   python main.py
+   python app/main.py  # python3 для UNIX-систем
    ```
 
-7. Откройте браузер и перейдите по адресу [http://127.0.0.1:8000](http://127.0.0.1:8000).
+7. Откройте браузер и перейдите по адресу [http://0.0.0.0:8000](http://0.0.0.0:8000).
 
 ### Автор
 
