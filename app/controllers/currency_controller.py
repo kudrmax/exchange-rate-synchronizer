@@ -5,11 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .base_controller import BaseController
-from app.models import CurrencyRateModel, RelatedCurrencyRateModel, ParametersModel
-from app.parsers import RateParser
-# from ..schemas import CurrencyRateUpdate, CurrencyRelatedRateUpdate, CurrencyRelatedRateCreate, ParameterUpdate, Parameter
-from app.schemas import CurrencyRateSchema, CurrencyRelatedRateSchema, ParameterUpdateSchema, ParameterSchema, \
-    CurrencyRelatedRateUpdateSchema
+from models import CurrencyRateModel, RelatedCurrencyRateModel, ParametersModel
+from parsers import RateParser
+from schemas import CurrencyRelatedRateSchema, ParameterUpdateSchema, ParameterSchema, CurrencyRelatedRateUpdateSchema
 
 
 class CurrencyController(BaseController):

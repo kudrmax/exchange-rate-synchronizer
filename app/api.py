@@ -8,7 +8,7 @@ from typing import List, Optional
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.models import CountryModel, RelatedCurrencyRateModel
+from models import CountryModel, RelatedCurrencyRateModel
 
 from schemas import CurrencyRatesRequestSchema, PlotRequestSchema
 

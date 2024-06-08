@@ -3,9 +3,9 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from .base_controller import BaseController
-from app.models import CountryModel
-from app.parsers import CountryCurrencyParser
-from app.schemas import CountrySchema
+from models import CountryModel
+from parsers import CountryCurrencyParser
+from schemas import CountrySchema
 
 
 class CountryController(BaseController):
