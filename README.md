@@ -6,6 +6,8 @@
 
 [//]: # (Стэк: `Python`, `FastAPI`, `SQLAlchemy`, `Pydantic`, `SQLite`, `Matplotlib`, `Pandas`)
 
+Ссылка на web-приложение: http://194.226.49.159:8000/
+
 #### Используемые технологии
 
 - `Python`
